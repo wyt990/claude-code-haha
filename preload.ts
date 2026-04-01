@@ -17,5 +17,7 @@ Object.assign(globalThis, {
     FEEDBACK_CHANNEL: 'local',
     VERSION_CHANGELOG: '',
     ISSUES_EXPLAINER: '',
+    /** Set true only in internal builds that patch preload. */
+    BUILD_IS_ANT: false as boolean,
   },
 });

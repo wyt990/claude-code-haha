@@ -75,6 +75,9 @@
       "image-processor-napi": [
         "./stubs/image-processor-napi.ts"
       ],
+      "react/compiler-runtime": [
+        "./stubs/react-compiler-runtime.ts"
+      ],
       "sharp": [
         "./stubs/sharp.ts"
       ],

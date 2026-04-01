@@ -6,7 +6,7 @@ import { Text, useInterval } from '../ink.js';
 
 // Show DevBar for dev builds or all ants
 function shouldShowDevBar(): boolean {
-  return "production" === 'development' || "external" === 'ant';
+  return "production" === 'development' || MACRO.BUILD_IS_ANT;
 }
 export function DevBar() {
   const $ = _c(5);

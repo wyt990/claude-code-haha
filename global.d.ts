@@ -7,4 +7,6 @@ declare const MACRO: {
   FEEDBACK_CHANNEL: string
   VERSION_CHANGELOG: string
   ISSUES_EXPLAINER: string
+  /** Internal Anthropic build; always false in open-source preload. */
+  BUILD_IS_ANT: boolean
 }

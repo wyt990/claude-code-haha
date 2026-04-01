@@ -29,7 +29,7 @@ export function createRecentActivityFeed(activities: LogOption[]): FeedConfig {
 }
 export function createWhatsNewFeed(releaseNotes: string[]): FeedConfig {
   const lines: FeedLine[] = releaseNotes.map(note => {
-    if ("external" === 'ant') {
+    if (MACRO.BUILD_IS_ANT) {
       const match = note.match(/^(\d+\s+\w+\s+ago)\s+(.+)$/);
       if (match) {
         return {
@@ -42,13 +42,13 @@ export function createWhatsNewFeed(releaseNotes: string[]): FeedConfig {
       text: note
     };
   });
-  const emptyMessage =
-    "external" === 'ant'
-      ? 'Unable to fetch latest claude-cli-internal commits'
-      : '可在更新日志中查看 Claude Code 的更新说明';
+  const emptyMessage = MACRO.BUILD_IS_ANT
+    ? 'Unable to fetch latest claude-cli-internal commits'
+    : '可在更新日志中查看 Claude Code 的更新说明';
   return {
-    title:
-      "external" === 'ant' ? "What's new [ANT-ONLY: Latest CC commits]" : '更新提要',
+    title: MACRO.BUILD_IS_ANT
+      ? "What's new [ANT-ONLY: Latest CC commits]"
+      : '更新提要',
     lines,
     footer: lines.length > 0 ? '输入 /release-notes 查看更多' : undefined,
     emptyMessage,
