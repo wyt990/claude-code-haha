@@ -4,6 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
@@ -18,7 +20,7 @@
       ]
     },
     "types": [
-      "bun-types"
+      "bun"
     ]
   }
 }

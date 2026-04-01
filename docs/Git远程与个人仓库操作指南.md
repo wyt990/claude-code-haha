@@ -74,7 +74,7 @@ git push -u origin main
 ```bash
 git status
 git add .
-git commit -m "兼容openai格式"
+git commit -m "修复一些错误"
 
 # 已设置过 -u 后可直接：
 git push
