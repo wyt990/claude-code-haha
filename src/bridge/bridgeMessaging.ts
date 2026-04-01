@@ -338,21 +338,21 @@ export function handleServerControlRequest(
         error:
           'set_permission_mode is not supported in this context (onSetPermissionMode callback not registered)',
       }
-      if (verdict.ok) {
-        response = {
-          type: 'control_response',
-          response: {
-            subtype: 'success',
-            request_id: request.request_id,
-          },
-        }
-      } else {
+      if (!verdict.ok) {
         response = {
           type: 'control_response',
           response: {
             subtype: 'error',
             request_id: request.request_id,
             error: verdict.error,
+          },
+        }
+      } else {
+        response = {
+          type: 'control_response',
+          response: {
+            subtype: 'success',
+            request_id: request.request_id,
           },
         }
       }

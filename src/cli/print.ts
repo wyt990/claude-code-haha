@@ -1673,13 +1673,17 @@ function runHeadlessStreaming(
           id: connection.config.id,
         }
       } else if (
-        connection.config.type === 'stdio' ||
-        connection.config.type === undefined
+        (connection.config.type === 'stdio' ||
+          connection.config.type === undefined) &&
+        'command' in connection.config &&
+        typeof connection.config.command === 'string'
       ) {
         config = {
           type: 'stdio' as const,
           command: connection.config.command,
-          args: connection.config.args,
+          args: Array.isArray(connection.config.args)
+            ? connection.config.args
+            : [],
         }
       }
       const serverTools =
@@ -2291,8 +2295,14 @@ function runHeadlessStreaming(
                 output.enqueue({
                   type: 'system' as const,
                   subtype: 'files_persisted' as const,
-                  files: result.files,
-                  failed: result.failed,
+                  files: result.persisted.map(p => ({
+                    filename: p.filePath,
+                    file_id: p.fileId ?? '',
+                  })),
+                  failed: result.failed.map(f => ({
+                    filename: f.filePath,
+                    error: f.error,
+                  })),
                   processed_at: new Date().toISOString(),
                   uuid: randomUUID(),
                   session_id: getSessionId(),
@@ -4464,16 +4474,24 @@ async function handleInitializeRequest(
   const accountInfo = getAccountInformation()
   if (request.hooks) {
     const hooks: Partial<Record<HookEvent, HookCallbackMatcher[]>> = {}
+    type InitHookMatcher = {
+      matcher: string
+      hookCallbackIds: string[]
+      timeout?: number
+    }
     for (const [event, matchers] of Object.entries(request.hooks)) {
-      hooks[event as HookEvent] = matchers.map(matcher => {
-        const callbacks = matcher.hookCallbackIds.map(callbackId => {
-          return structuredIO.createHookCallback(callbackId, matcher.timeout)
-        })
-        return {
-          matcher: matcher.matcher,
-          hooks: callbacks,
-        }
-      })
+      if (!Array.isArray(matchers)) continue
+      hooks[event as HookEvent] = (matchers as InitHookMatcher[]).map(
+        matcher => {
+          const callbacks = matcher.hookCallbackIds.map(callbackId => {
+            return structuredIO.createHookCallback(callbackId, matcher.timeout)
+          })
+          return {
+            matcher: matcher.matcher,
+            hooks: callbacks,
+          }
+        },
+      )
     }
     registerHookCallbacks(hooks)
   }
@@ -5404,9 +5422,9 @@ export async function handleMcpSetServers(
 
   for (const [name, config] of Object.entries(allowedServers)) {
     if (config.type === 'sdk') {
-      sdkServers[name] = config
+      sdkServers[name] = config as McpSdkServerConfig
     } else {
-      processServers[name] = config
+      processServers[name] = config as McpServerConfigForProcessTransport
     }
   }
 

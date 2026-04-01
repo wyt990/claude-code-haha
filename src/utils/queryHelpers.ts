@@ -16,6 +16,7 @@ import {
   FILE_UNCHANGED_STUB,
 } from '../tools/FileReadTool/prompt.js'
 import { FILE_WRITE_TOOL_NAME } from '../tools/FileWriteTool/prompt.js'
+import type { PermissionDecision } from '../types/permissions.js'
 import type { Message } from '../types/message.js'
 import type { OrphanedPermission } from '../types/textInputTypes.js'
 import { logForDebugging } from './debug.js'
@@ -60,7 +61,9 @@ export function isResultSuccessful(
   if (!message) return false
 
   if (message.type === 'assistant') {
-    const lastContent = last(message.message.content)
+    const lastContent = last(message.message.content) as
+      | { type?: string }
+      | undefined
     return (
       lastContent?.type === 'text' ||
       lastContent?.type === 'thinking' ||
@@ -229,7 +232,7 @@ export async function* handleOrphanedPermission(
 ): AsyncGenerator<SDKMessage, void, unknown> {
   const persistSession = !isSessionPersistenceDisabled()
   const { permissionResult, assistantMessage } = orphanedPermission
-  const { toolUseID } = permissionResult
+  const toolUseID = (permissionResult as { toolUseID?: string }).toolUseID
 
   if (!toolUseID) {
     return
@@ -276,7 +279,7 @@ export async function* handleOrphanedPermission(
   }
 
   const canUseTool: CanUseToolFn = async () => ({
-    ...permissionResult,
+    ...(permissionResult as PermissionDecision<Record<string, unknown>>),
     decisionReason: {
       type: 'mode',
       mode: 'default' as const,

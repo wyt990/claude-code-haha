@@ -9,6 +9,8 @@ export type ContextCollapseStats = {
     totalErrors: number
     totalEmptySpawns: number
     emptySpawnWarningEmitted: boolean
+    /** Set when a spawn fails; optional in stubs / minimal stats. */
+    lastError?: string
   }
 }
 

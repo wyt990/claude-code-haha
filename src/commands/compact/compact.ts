@@ -178,7 +178,7 @@ async function compactViaReactive(
       { customInstructions: mergedInstructions, trigger: 'manual' },
     )
 
-    if (!outcome.ok) {
+    if (outcome.ok === false) {
       // The outer catch in `call` translates these: aborted → "Compaction
       // canceled." (via abortController.signal.aborted check), NOT_ENOUGH →
       // re-thrown as-is, everything else → "Error during compaction: …".
@@ -190,6 +190,8 @@ async function compactViaReactive(
         case 'exhausted':
         case 'error':
         case 'media_unstrippable':
+          throw new Error(ERROR_MESSAGE_INCOMPLETE_RESPONSE)
+        default:
           throw new Error(ERROR_MESSAGE_INCOMPLETE_RESPONSE)
       }
     }

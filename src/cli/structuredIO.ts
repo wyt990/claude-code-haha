@@ -8,10 +8,10 @@ import type { AssistantMessage } from 'src//types/message.js'
 import type {
   HookInput,
   HookJSONOutput,
-  PermissionUpdate,
   SDKMessage,
   SDKUserMessage,
 } from 'src/entrypoints/agentSdkTypes.js'
+import type { PermissionUpdate } from 'src/types/permissions.js'
 import { SDKControlElicitationResponseSchema } from 'src/entrypoints/sdk/controlSchemas.js'
 import type {
   SDKControlRequest,
@@ -352,7 +352,8 @@ export class StructuredIO {
         // by the REPL process itself, not just child Bash commands.
         const keys = Object.keys(message.variables)
         for (const [key, value] of Object.entries(message.variables)) {
-          process.env[key] = value
+          process.env[key] =
+            value === undefined || value === null ? '' : String(value)
         }
         logForDebugging(
           `[structuredIO] applied update_environment_variables: ${keys.join(', ')}`,
@@ -816,7 +817,8 @@ async function executePermissionRequestHooksForSDK(
         const finalInput = decision.updatedInput || input
 
         // Apply permission updates if provided by hook ("always allow")
-        const permissionUpdates = decision.updatedPermissions ?? []
+        const permissionUpdates = (decision.updatedPermissions ??
+          []) as PermissionUpdate[]
         if (permissionUpdates.length > 0) {
           persistPermissionUpdates(permissionUpdates)
           const currentAppState = toolUseContext.getAppState()

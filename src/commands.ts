@@ -454,7 +454,9 @@ const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
   ] = await Promise.all([
     getSkills(cwd),
     getPluginCommands(),
-    getWorkflowCommands ? getWorkflowCommands(cwd) : Promise.resolve([]),
+    getWorkflowCommands
+      ? Promise.resolve(getWorkflowCommands())
+      : Promise.resolve([]),
   ])
 
   return [

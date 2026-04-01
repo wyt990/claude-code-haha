@@ -14,7 +14,8 @@ export type SDKAssistantMessage = Record<string, any>
 export type SDKAssistantMessageError = string
 export type SDKCompactBoundaryMessage = Record<string, any>
 export type SDKPermissionDenial = Record<string, any>
-export type SDKStatus = Record<string, any>
+/** Runtime uses string codes (e.g. compacting) and null; schema may describe objects. */
+export type SDKStatus = string | Record<string, any> | null
 export type SDKPartialAssistantMessage = Record<string, any>
 export type SDKRateLimitInfo = Record<string, any>
 export type SDKStatusMessage = Record<string, any>
