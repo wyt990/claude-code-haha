@@ -25,13 +25,13 @@ const WORKFLOWS: WorkflowOption[] = [{
 }];
 function renderInputGuide(exitState: ExitState): React.ReactNode {
   if (exitState.pending) {
-    return <Text>Press {exitState.keyName} again to exit</Text>;
+    return <Text>再按一次 {exitState.keyName} 退出</Text>;
   }
   return <Byline>
       <KeyboardShortcutHint shortcut="↑↓" action="navigate" />
       <KeyboardShortcutHint shortcut="Space" action="toggle" />
       <KeyboardShortcutHint shortcut="Enter" action="confirm" />
-      <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
+      <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="取消" />
     </Byline>;
 }
 export function WorkflowMultiselectDialog(t0) {

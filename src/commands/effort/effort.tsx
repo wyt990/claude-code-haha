@@ -21,7 +21,7 @@ function setEffortValue(effortValue: EffortValue): EffortCommandResult {
     });
     if (result.error) {
       return {
-        message: `Failed to set effort level: ${result.error.message}`
+        message: `设置努力程度失败：${result.error.message}`
       };
     }
   }
@@ -37,23 +37,23 @@ function setEffortValue(effortValue: EffortValue): EffortCommandResult {
     const envRaw = process.env.CLAUDE_CODE_EFFORT_LEVEL;
     if (persistable === undefined) {
       return {
-        message: `Not applied: CLAUDE_CODE_EFFORT_LEVEL=${envRaw} overrides effort this session, and ${effortValue} is session-only (nothing saved)`,
+        message: `未生效：环境变量 CLAUDE_CODE_EFFORT_LEVEL=${envRaw} 会覆盖本会话的努力程度，且 ${effortValue} 仅作用于本会话（未写入设置）`,
         effortUpdate: {
           value: effortValue
         }
       };
     }
     return {
-      message: `CLAUDE_CODE_EFFORT_LEVEL=${envRaw} overrides this session — clear it and ${effortValue} takes over`,
+      message: `CLAUDE_CODE_EFFORT_LEVEL=${envRaw} 正在覆盖本会话 — 清除该环境变量后，${effortValue} 才会生效`,
       effortUpdate: {
         value: effortValue
       }
     };
   }
   const description = getEffortValueDescription(effortValue);
-  const suffix = persistable !== undefined ? '' : ' (this session only)';
+  const suffix = persistable !== undefined ? '' : '（仅本会话）';
   return {
-    message: `Set effort level to ${effortValue}${suffix}: ${description}`,
+    message: `已将努力程度设为 ${effortValue}${suffix}：${description}`,
     effortUpdate: {
       value: effortValue
     }
@@ -65,12 +65,12 @@ export function showCurrentEffort(appStateEffort: EffortValue | undefined, model
   if (effectiveValue === undefined) {
     const level = getDisplayedEffortLevel(model, appStateEffort);
     return {
-      message: `Effort level: auto (currently ${level})`
+      message: `努力程度：自动（当前表现为 ${level}）`
     };
   }
   const description = getEffortValueDescription(effectiveValue);
   return {
-    message: `Current effort level: ${effectiveValue} (${description})`
+    message: `当前努力程度：${effectiveValue}（${description}）`
   };
 }
 function unsetEffortLevel(): EffortCommandResult {
@@ -79,7 +79,7 @@ function unsetEffortLevel(): EffortCommandResult {
   });
   if (result.error) {
     return {
-      message: `Failed to set effort level: ${result.error.message}`
+      message: `设置努力程度失败：${result.error.message}`
     };
   }
   logEvent('tengu_effort_command', {
@@ -91,14 +91,14 @@ function unsetEffortLevel(): EffortCommandResult {
   if (envOverride !== undefined && envOverride !== null) {
     const envRaw = process.env.CLAUDE_CODE_EFFORT_LEVEL;
     return {
-      message: `Cleared effort from settings, but CLAUDE_CODE_EFFORT_LEVEL=${envRaw} still controls this session`,
+      message: `已从设置中清除努力程度，但 CLAUDE_CODE_EFFORT_LEVEL=${envRaw} 仍控制本会话`,
       effortUpdate: {
         value: undefined
       }
     };
   }
   return {
-    message: 'Effort level set to auto',
+    message: '已恢复为自动努力程度',
     effortUpdate: {
       value: undefined
     }
@@ -111,7 +111,7 @@ export function executeEffort(args: string): EffortCommandResult {
   }
   if (!isEffortLevel(normalized)) {
     return {
-      message: `Invalid argument: ${args}. Valid options are: low, medium, high, max, auto`
+      message: `无效参数：${args}。可选值：low、medium、high、max、auto`
     };
   }
   return setEffortValue(normalized);
@@ -171,7 +171,7 @@ function ApplyEffortAndClose(t0) {
 export async function call(onDone: LocalJSXCommandOnDone, _context: unknown, args?: string): Promise<React.ReactNode> {
   args = args?.trim() || '';
   if (COMMON_HELP_ARGS.includes(args)) {
-    onDone('Usage: /effort [low|medium|high|max|auto]\n\nEffort levels:\n- low: Quick, straightforward implementation\n- medium: Balanced approach with standard testing\n- high: Comprehensive implementation with extensive testing\n- max: Maximum capability with deepest reasoning (Opus 4.6 only)\n- auto: Use the default effort level for your model');
+    onDone('用法：/effort [low|medium|high|max|auto]\n\n努力程度说明：\n- low：快速、直接实现\n- medium：实现与测试较为均衡\n- high：更全面实现与测试\n- max：最强推理（仅 Opus 4.6）\n- auto：使用当前模型的默认努力程度');
     return;
   }
   if (!args || args === 'current' || args === 'status') {

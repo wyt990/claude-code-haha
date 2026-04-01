@@ -120,7 +120,7 @@ export function GenerateStep(): ReactNode {
   };
   const subtitle = 'Describe what this agent should do and when it should be used (be comprehensive for best results)';
   if (isGenerating) {
-    return <WizardDialogLayout subtitle={subtitle} footerText={<ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />}>
+    return <WizardDialogLayout subtitle={subtitle} footerText={<ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="取消" />}>
         <Box flexDirection="row" alignItems="center">
           <Spinner />
           <Text color="suggestion"> Generating agent from description...</Text>

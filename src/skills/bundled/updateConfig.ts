@@ -446,7 +446,7 @@ export function registerUpdateConfigSkill(): void {
   registerBundledSkill({
     name: 'update-config',
     description:
-      'Use this skill to configure the Claude Code harness via settings.json. Automated behaviors ("from now on when X", "each time X", "whenever X", "before/after X") require hooks configured in settings.json - the harness executes these, not Claude, so memory/preferences cannot fulfill them. Also use for: permissions ("allow X", "add permission", "move permission to"), env vars ("set X=Y"), hook troubleshooting, or any changes to settings.json/settings.local.json files. Examples: "allow npm commands", "add bq permission to global settings", "move permission to user settings", "set DEBUG=true", "when claude stops show X". For simple settings like theme/model, use Config tool.',
+      '通过 settings.json 配置 Claude Code 运行环境。自动化行为（「以后每当 X」「每次 X」「在 X 之前/之后」等）必须在 settings.json 中配置 hook，由 harness 执行而非仅靠对话记忆。也用于：权限（允许某命令、添加/迁移权限规则）、环境变量（set X=Y）、hook 排错，或修改 settings.json / settings.local.json。示例：允许 npm、把 bq 权限加到全局、把权限移到用户设置、set DEBUG=true。主题/模型等简单项请用 Config 工具。',
     allowedTools: ['Read'],
     userInvocable: true,
     async getPromptForCommand(args) {

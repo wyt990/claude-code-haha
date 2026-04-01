@@ -2,7 +2,11 @@ import { feature } from 'bun:bundle'
 import { open } from 'fs/promises'
 import { basename, dirname, join, sep } from 'path'
 import type { ModelUsage } from 'src/entrypoints/agentSdkTypes.js'
-import type { Entry, TranscriptMessage } from '../types/logs.js'
+import type {
+  Entry,
+  SpeculationAcceptMessage,
+  TranscriptMessage,
+} from '../types/logs.js'
 import { logForDebugging } from './debug.js'
 import { errorMessage, isENOENT } from './errors.js'
 import { getFsImplementation } from './fsOperations.js'
@@ -197,8 +201,12 @@ async function processSessionFiles(
       for (const entry of entries) {
         if (isTranscriptMessage(entry)) {
           messages.push(entry)
-        } else if (entry.type === 'speculation-accept') {
-          totalSpeculationTimeSavedMs += entry.timeSavedMs
+        } else if (
+          (entry as { type?: string }).type === 'speculation-accept'
+        ) {
+          totalSpeculationTimeSavedMs += (
+            entry as SpeculationAcceptMessage
+          ).timeSavedMs
         }
       }
 

@@ -1,0 +1,7 @@
+Anthropic-internal auto-mode template (stub for local recovery build).
+
+<user_allow_rules_to_replace></user_allow_rules_to_replace>
+<user_deny_rules_to_replace></user_deny_rules_to_replace>
+<user_environment_to_replace></user_environment_to_replace>
+
+Default guidance: err on the side of blocking ambiguous high-impact actions.

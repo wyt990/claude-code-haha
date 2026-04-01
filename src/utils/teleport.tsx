@@ -39,7 +39,10 @@ import { jsonStringify } from './slowOperations.js';
 import { asSystemPrompt } from './systemPromptType.js';
 import { fetchSession, type GitRepositoryOutcome, type GitSource, getBranchFromSession, getOAuthHeaders, type SessionResource } from './teleport/api.js';
 import { fetchEnvironments } from './teleport/environments.js';
-import { createAndUploadGitBundle } from './teleport/gitBundle.js';
+import {
+  createAndUploadGitBundle,
+  isBundleUploadFailure,
+} from './teleport/gitBundle.js';
 export type TeleportResult = {
   messages: Message[];
   branchName: string;
@@ -843,7 +846,7 @@ export async function teleportToRemote(options: {
         }, {
           signal
         });
-        if (!bundle.success) {
+        if (isBundleUploadFailure(bundle)) {
           logError(new Error(`Bundle upload failed: ${bundle.error}`));
           return null;
         }
@@ -1007,12 +1010,13 @@ export async function teleportToRemote(options: {
       }, {
         signal
       });
-      if (!bundle.success) {
+      if (isBundleUploadFailure(bundle)) {
         logError(new Error(`Bundle upload failed: ${bundle.error}`));
         // Only steer users to GitHub setup when there's a remote to clone from.
         const setup = repoInfo ? '. Please setup GitHub on https://claude.ai/code' : '';
         let msg: string;
-        switch (bundle.failReason) {
+        const reason = bundle.failReason;
+        switch (reason) {
           case 'empty_repo':
             msg = 'Repository has no commits — run `git add . && git commit -m "initial"` then retry';
             break;
@@ -1025,12 +1029,11 @@ export async function teleportToRemote(options: {
           case undefined:
             msg = `Bundle upload failed: ${bundle.error}${setup}`;
             break;
-          default:
-            {
-              const _exhaustive: never = bundle.failReason;
-              void _exhaustive;
-              msg = `Bundle upload failed: ${bundle.error}`;
-            }
+          default: {
+            const _exhaustive: never = reason;
+            void _exhaustive;
+            msg = `Bundle upload failed: ${bundle.error}`;
+          }
         }
         options.onBundleFail?.(msg);
         return null;

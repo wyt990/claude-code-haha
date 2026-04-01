@@ -34,7 +34,7 @@ export function ChannelsNotice() {
   if (disabled) {
     let t1;
     if ($[0] !== flag || $[1] !== list) {
-      t1 = <Text color="error">{flag} ignored ({list})</Text>;
+      t1 = <Text color="error">{flag} 已忽略（{list}）</Text>;
       $[0] = flag;
       $[1] = list;
       $[2] = t1;
@@ -43,7 +43,7 @@ export function ChannelsNotice() {
     }
     let t2;
     if ($[3] === Symbol.for("react.memo_cache_sentinel")) {
-      t2 = <Text dimColor={true}>Channels are not currently available</Text>;
+      t2 = <Text dimColor={true}>Channels 当前不可用</Text>;
       $[3] = t2;
     } else {
       t2 = $[3];
@@ -61,7 +61,7 @@ export function ChannelsNotice() {
   if (noAuth) {
     let t1;
     if ($[6] !== flag || $[7] !== list) {
-      t1 = <Text color="error">{flag} ignored ({list})</Text>;
+      t1 = <Text color="error">{flag} 已忽略（{list}）</Text>;
       $[6] = flag;
       $[7] = list;
       $[8] = t1;
@@ -70,7 +70,7 @@ export function ChannelsNotice() {
     }
     let t2;
     if ($[9] === Symbol.for("react.memo_cache_sentinel")) {
-      t2 = <Text dimColor={true}>Channels require claude.ai authentication · run /login, then restart</Text>;
+      t2 = <Text dimColor={true}>Channels 需要 claude.ai 认证 · 请执行 /login 后重启</Text>;
       $[9] = t2;
     } else {
       t2 = $[9];
@@ -88,7 +88,7 @@ export function ChannelsNotice() {
   if (policyBlocked) {
     let t1;
     if ($[12] !== flag || $[13] !== list) {
-      t1 = <Text color="error">{flag} blocked by org policy ({list})</Text>;
+      t1 = <Text color="error">{flag} 已被组织策略阻止（{list}）</Text>;
       $[12] = flag;
       $[13] = list;
       $[14] = t1;
@@ -98,8 +98,8 @@ export function ChannelsNotice() {
     let t2;
     let t3;
     if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
-      t2 = <Text dimColor={true}>Inbound messages will be silently dropped</Text>;
-      t3 = <Text dimColor={true}>Have an administrator set channelsEnabled: true in managed settings to enable</Text>;
+      t2 = <Text dimColor={true}>入站消息将被静默丢弃</Text>;
+      t3 = <Text dimColor={true}>请管理员在托管设置中将 channelsEnabled 设为 true 以启用</Text>;
       $[15] = t2;
       $[16] = t3;
     } else {
@@ -127,7 +127,7 @@ export function ChannelsNotice() {
   }
   let t1;
   if ($[22] !== list) {
-    t1 = <Text color="error">Listening for channel messages from: {list}</Text>;
+    t1 = <Text color="error">正在监听来自以下渠道的消息：{list}</Text>;
     $[22] = list;
     $[23] = t1;
   } else {
@@ -135,7 +135,7 @@ export function ChannelsNotice() {
   }
   let t2;
   if ($[24] !== flag) {
-    t2 = <Text dimColor={true}>Experimental · inbound messages will be pushed into this session, this carries prompt injection risks. Restart Claude Code without {flag} to disable.</Text>;
+    t2 = <Text dimColor={true}>实验功能 · 渠道消息会推入本会话，存在提示词注入风险。不带 {flag} 重启 Claude Code 可关闭。</Text>;
     $[24] = flag;
     $[25] = t2;
   } else {

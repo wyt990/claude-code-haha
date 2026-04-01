@@ -1,0 +1,11 @@
+External auto-mode permission defaults (stub for local recovery build).
+
+<user_allow_rules_to_replace>
+- Allow read-only inspection of the workspace when reversible.
+</user_allow_rules_to_replace>
+<user_deny_rules_to_replace>
+- Deny destructive or irreversible actions without explicit user confirmation.
+</user_deny_rules_to_replace>
+<user_environment_to_replace>
+- Respect organization and project policy constraints.
+</user_environment_to_replace>

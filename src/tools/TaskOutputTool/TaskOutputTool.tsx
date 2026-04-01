@@ -330,8 +330,8 @@ export const TaskOutputTool: Tool<InputSchema, TaskOutputToolOutput> = buildTool
     return <Box flexDirection="column">
           {progressData?.taskDescription && <Text>&nbsp;&nbsp;{progressData.taskDescription}</Text>}
           <Text>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Waiting for task{' '}
-            <Text dimColor>(esc to give additional instructions)</Text>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;等待任务执行{' '}
+            <Text dimColor>（Esc 可补充说明）</Text>
           </Text>
         </Box>;
   },

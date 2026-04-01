@@ -12,11 +12,80 @@
       "@ant/claude-for-chrome-mcp": [
         "./stubs/ant-claude-for-chrome-mcp.ts"
       ],
+      "@ant/computer-use-mcp/sentinelApps": [
+        "./stubs/ant-computer-use-sentinelApps.ts"
+      ],
+      "@ant/computer-use-mcp/types": [
+        "./stubs/ant-computer-use-types.ts"
+      ],
+      "@anthropic-ai/claude-agent-sdk": [
+        "./stubs/anthropic-claude-agent-sdk.ts"
+      ],
+      "@anthropic-ai/mcpb": [
+        "./stubs/anthropic-mcpb.ts"
+      ],
+      "@aws-sdk/client-bedrock": [
+        "./stubs/aws-bedrock.ts"
+      ],
+      "@aws-sdk/client-bedrock-runtime": [
+        "./stubs/aws-bedrock-runtime.ts"
+      ],
+      "@opentelemetry/exporter-logs-otlp-grpc": [
+        "./stubs/opentelemetry-exporter-logs-otlp-grpc.ts"
+      ],
+      "@opentelemetry/exporter-logs-otlp-http": [
+        "./stubs/opentelemetry-exporter-logs-otlp-http.ts"
+      ],
+      "@opentelemetry/exporter-logs-otlp-proto": [
+        "./stubs/opentelemetry-exporter-logs-otlp-proto.ts"
+      ],
+      "@opentelemetry/exporter-metrics-otlp-grpc": [
+        "./stubs/opentelemetry-exporter-metrics-otlp-grpc.ts"
+      ],
+      "@opentelemetry/exporter-metrics-otlp-http": [
+        "./stubs/opentelemetry-exporter-metrics-otlp-http.ts"
+      ],
+      "@opentelemetry/exporter-metrics-otlp-proto": [
+        "./stubs/opentelemetry-exporter-metrics-otlp-proto.ts"
+      ],
+      "@opentelemetry/exporter-prometheus": [
+        "./stubs/opentelemetry-exporter-prometheus.ts"
+      ],
+      "@opentelemetry/exporter-trace-otlp-grpc": [
+        "./stubs/opentelemetry-exporter-trace-otlp-grpc.ts"
+      ],
+      "@opentelemetry/exporter-trace-otlp-http": [
+        "./stubs/opentelemetry-exporter-trace-otlp-http.ts"
+      ],
+      "@opentelemetry/exporter-trace-otlp-proto": [
+        "./stubs/opentelemetry-exporter-trace-otlp-proto.ts"
+      ],
+      "audio-capture-napi": [
+        "./stubs/audio-capture-napi.ts"
+      ],
+      "cli-highlight": [
+        "./stubs/cli-highlight.ts"
+      ],
       "color-diff-napi": [
         "./stubs/color-diff-napi.ts"
       ],
+      "fflate": [
+        "./stubs/fflate.ts"
+      ],
+      "image-processor-napi": [
+        "./stubs/image-processor-napi.ts"
+      ],
+      "sharp": [
+        "./stubs/sharp.ts"
+      ],
       "src/*": [
         "./src/*"
+      ],
+      "turndown": [
+        "./stubs/turndown.ts"
+      ],
+      "vscode-languageserver-protocol": [
+        "./stubs/vscode-languageserver-protocol.ts"
       ]
     },
     "types": [

@@ -60,10 +60,10 @@ export function FileEditPermissionRequest(props) {
     t6 = props.onDone;
     t7 = props.onReject;
     t8 = props.workerBadge;
-    t9 = "Edit file";
+    t9 = "编辑文件";
     t10 = relative(getCwd(), file_path);
     T1 = Text;
-    t2 = "Do you want to make this edit to";
+    t2 = "是否将此次编辑应用到";
     t3 = " ";
     T0 = Text;
     t0 = true;
@@ -123,7 +123,7 @@ export function FileEditPermissionRequest(props) {
   }
   let t12;
   if ($[27] !== T1 || $[28] !== t11 || $[29] !== t2 || $[30] !== t3) {
-    t12 = <T1>{t2}{t3}{t11}?</T1>;
+    t12 = <T1>{t2}{t3}{t11}？</T1>;
     $[27] = T1;
     $[28] = t11;
     $[29] = t2;

@@ -96,9 +96,9 @@ export function calculateOptimalLeftWidth(
  */
 export function formatWelcomeMessage(username: string | null): string {
   if (!username || username.length > MAX_USERNAME_LENGTH) {
-    return 'Welcome back!'
+    return '欢迎回来！'
   }
-  return `Welcome back ${username}!`
+  return `${username}，欢迎回来！`
 }
 
 /**
@@ -201,10 +201,15 @@ export async function getRecentActivity(): Promise<LogOption[]> {
           if (log.sessionId === currentSessionId) return false
           if (log.summary?.includes('I apologize')) return false
 
-          // Filter out sessions where both summary and firstPrompt are "No prompt" or missing
-          const hasSummary = log.summary && log.summary !== 'No prompt'
+          // Filter out sessions where both summary and firstPrompt are empty placeholders or missing
+          const hasSummary =
+            log.summary &&
+            log.summary !== 'No prompt' &&
+            log.summary !== '无提示'
           const hasFirstPrompt =
-            log.firstPrompt && log.firstPrompt !== 'No prompt'
+            log.firstPrompt &&
+            log.firstPrompt !== 'No prompt' &&
+            log.firstPrompt !== '无提示'
           return hasSummary || hasFirstPrompt
         })
         .slice(0, 3)
@@ -255,7 +260,7 @@ export function getLogoDisplayData(): {
     : displayPath
   const billingType = isClaudeAISubscriber()
     ? getSubscriptionName()
-    : 'API Usage Billing'
+    : 'API 用量计费'
   const agentName = getInitialSettings().agent
 
   return {

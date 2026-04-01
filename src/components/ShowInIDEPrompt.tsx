@@ -57,7 +57,7 @@ export function ShowInIDEPrompt(t0) {
   }
   let t3;
   if ($[4] === Symbol.for("react.memo_cache_sentinel")) {
-    t3 = isSupportedVSCodeTerminal() && <Text dimColor={true}>Save file to continue…</Text>;
+    t3 = isSupportedVSCodeTerminal() && <Text dimColor={true}>请保存文件后继续…</Text>;
     $[4] = t3;
   } else {
     t3 = $[4];
@@ -72,7 +72,7 @@ export function ShowInIDEPrompt(t0) {
   }
   let t5;
   if ($[7] !== t4) {
-    t5 = <Text>Do you want to make this edit to{" "}<Text bold={true}>{t4}</Text>?</Text>;
+    t5 = <Text>是否将此次编辑应用到{" "}<Text bold={true}>{t4}</Text>？</Text>;
     $[7] = t4;
     $[8] = t5;
   } else {

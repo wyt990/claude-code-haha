@@ -53,6 +53,9 @@ import {
   worktreeBranchName,
 } from './utils/worktree.js'
 
+/** setup() must not block the TUI indefinitely on slow disks / huge ~/.claude session history */
+const RECENT_ACTIVITY_SETUP_BUDGET_MS = 10_000
+
 export async function setup(
   cwd: string,
   permissionMode: PermissionMode,
@@ -398,7 +401,14 @@ export async function setup(
       getGlobalConfig().lastReleaseNotesSeen,
     )
     if (hasReleaseNotes) {
-      await getRecentActivity()
+      // getRecentActivity → loadMessageLogs / enrichLogs can take minutes on
+      // large project dirs or network-backed home; race so Ink can mount.
+      await Promise.race([
+        getRecentActivity(),
+        new Promise<void>(resolve => {
+          setTimeout(resolve, RECENT_ACTIVITY_SETUP_BUDGET_MS)
+        }),
+      ])
     }
   }
 

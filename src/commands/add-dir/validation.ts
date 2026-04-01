@@ -1,6 +1,24 @@
 import chalk from 'chalk'
 import { stat } from 'fs/promises'
 import { dirname, resolve } from 'path'
+
+/** NFS / 异常挂载上 stat 可能长时间不返回；超时后跳过以免启动卡死 */
+const WORKSPACE_DIR_STAT_TIMEOUT_MS = 12_000
+
+function statDirectoryWithTimeout(absolutePath: string) {
+  return Promise.race([
+    stat(absolutePath),
+    new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(
+          Object.assign(new Error('Directory stat timed out'), {
+            code: 'ETIMEDOUT' as const,
+          }),
+        )
+      }, WORKSPACE_DIR_STAT_TIMEOUT_MS)
+    }),
+  ])
+}
 import type { ToolPermissionContext } from '../../Tool.js'
 import { getErrnoCode } from '../../utils/errors.js'
 import { expandPath } from '../../utils/path.js'
@@ -19,6 +37,11 @@ export type AddDirectoryResult =
     }
   | {
       resultType: 'pathNotFound' | 'notADirectory'
+      directoryPath: string
+      absolutePath: string
+    }
+  | {
+      resultType: 'statTimeout'
       directoryPath: string
       absolutePath: string
     }
@@ -42,9 +65,10 @@ export async function validateDirectoryForWorkspace(
   // inputs, so /foo and /foo/ map to the same storage key (CC-33).
   const absolutePath = resolve(expandPath(directoryPath))
 
-  // Check if path exists and is a directory (single syscall)
+  // Check if path exists and is a directory (async + timeout so NFS hangs
+  // cannot block startup indefinitely).
   try {
-    const stats = await stat(absolutePath)
+    const stats = await statDirectoryWithTimeout(absolutePath)
     if (!stats.isDirectory()) {
       return {
         resultType: 'notADirectory',
@@ -54,6 +78,13 @@ export async function validateDirectoryForWorkspace(
     }
   } catch (e: unknown) {
     const code = getErrnoCode(e)
+    if (code === 'ETIMEDOUT') {
+      return {
+        resultType: 'statTimeout',
+        directoryPath,
+        absolutePath,
+      }
+    }
     // Match prior existsSync() semantics: treat any of these as "not found"
     // rather than re-throwing. EACCES/EPERM in particular must not crash
     // startup when a settings-configured additional directory is inaccessible.
@@ -96,6 +127,8 @@ export function addDirHelpMessage(result: AddDirectoryResult): string {
   switch (result.resultType) {
     case 'emptyPath':
       return 'Please provide a directory path.'
+    case 'statTimeout':
+      return `检查路径 ${chalk.bold(result.absolutePath)} 超时（常见于网络盘无响应）；已跳过该附加目录，请检查挂载或从设置中移除。`
     case 'pathNotFound':
       return `Path ${chalk.bold(result.absolutePath)} was not found.`
     case 'notADirectory': {

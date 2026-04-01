@@ -1022,43 +1022,43 @@ export function getSearchReadSummaryText(
   if (searchCount > 0) {
     const searchVerb = isActive
       ? parts.length === 0
-        ? 'Searching for'
-        : 'searching for'
+        ? '正在搜索'
+        : '搜索'
       : parts.length === 0
-        ? 'Searched for'
-        : 'searched for'
+        ? '已搜索'
+        : '已搜索'
     parts.push(
-      `${searchVerb} ${searchCount} ${searchCount === 1 ? 'pattern' : 'patterns'}`,
+      `${searchVerb} ${searchCount} 个模式`,
     )
   }
 
   if (readCount > 0) {
     const readVerb = isActive
       ? parts.length === 0
-        ? 'Reading'
-        : 'reading'
+        ? '正在读取'
+        : '读取'
       : parts.length === 0
-        ? 'Read'
-        : 'read'
-    parts.push(`${readVerb} ${readCount} ${readCount === 1 ? 'file' : 'files'}`)
+        ? '已读取'
+        : '已读取'
+    parts.push(`${readVerb} ${readCount} 个文件`)
   }
 
   if (listCount > 0) {
     const listVerb = isActive
       ? parts.length === 0
-        ? 'Listing'
-        : 'listing'
+        ? '正在列出'
+        : '列出'
       : parts.length === 0
-        ? 'Listed'
-        : 'listed'
+        ? '已列出'
+        : '已列出'
     parts.push(
-      `${listVerb} ${listCount} ${listCount === 1 ? 'directory' : 'directories'}`,
+      `${listVerb} ${listCount} 个目录`,
     )
   }
 
   if (replCount > 0) {
-    const replVerb = isActive ? "REPL'ing" : "REPL'd"
-    parts.push(`${replVerb} ${replCount} ${replCount === 1 ? 'time' : 'times'}`)
+    const replVerb = isActive ? '正在 REPL' : '已 REPL'
+    parts.push(`${replVerb} ${replCount} 次`)
   }
 
   const text = parts.join(', ')

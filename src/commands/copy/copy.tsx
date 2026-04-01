@@ -146,7 +146,7 @@ function CopyPicker(t0) {
       t4 = {
         label: "Always copy full response",
         value: "always" as const,
-        description: "Skip this picker in the future (revert via /config)"
+        description: "以后跳过此选择器（可在 /config 中恢复）"
       };
       $[5] = t4;
     } else {
@@ -328,7 +328,7 @@ function _temp(block, index) {
   return {
     label: truncateLine(block.code, 60),
     value: index,
-    description: [block.lang, blockLines > 1 ? `${blockLines} lines` : undefined].filter(Boolean).join(", ") || undefined
+    description: [block.lang, blockLines > 1 ? `${blockLines} 行` : undefined].filter(Boolean).join(", ") || undefined
   };
 }
 export const call: LocalJSXCommandCall = async (onDone, context, args) => {

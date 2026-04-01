@@ -2,9 +2,15 @@ import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import uniqBy from 'lodash-es/uniqBy.js'
 
+type SessionTranscriptWriter = {
+  writeSessionTranscriptSegment: (
+    messages: unknown[],
+  ) => void | Promise<void>
+}
+
 /* eslint-disable @typescript-eslint/no-require-imports */
-const sessionTranscriptModule = feature('KAIROS')
-  ? (require('../sessionTranscript/sessionTranscript.js') as typeof import('../sessionTranscript/sessionTranscript.js'))
+const sessionTranscriptModule: SessionTranscriptWriter | null = feature('KAIROS')
+  ? (require('../sessionTranscript/sessionTranscript.js') as SessionTranscriptWriter)
   : null
 
 import { APIUserAbortError } from '@anthropic-ai/sdk'
@@ -13,7 +19,10 @@ import { getInvokedSkillsForAgent } from '../../bootstrap/state.js'
 import type { QuerySource } from '../../constants/querySource.js'
 import type { CanUseToolFn } from '../../hooks/useCanUseTool.js'
 import type { Tool, ToolUseContext } from '../../Tool.js'
-import type { LocalAgentTaskState } from '../../tasks/LocalAgentTask/LocalAgentTask.js'
+import {
+  isLocalAgentTask,
+  type LocalAgentTaskState,
+} from '../../tasks/LocalAgentTask/LocalAgentTask.js'
 import { FileReadTool } from '../../tools/FileReadTool/FileReadTool.js'
 import {
   FILE_READ_TOOL_NAME,
@@ -291,10 +300,10 @@ export function truncateHeadForPTLRetry(
 }
 
 export const ERROR_MESSAGE_PROMPT_TOO_LONG =
-  'Conversation too long. Press esc twice to go up a few messages and try again.'
+  '对话过长。请连按两次 Esc 回到较早消息后再试。'
 export const ERROR_MESSAGE_USER_ABORT = 'API Error: Request was aborted.'
 export const ERROR_MESSAGE_INCOMPLETE_RESPONSE =
-  'Compaction interrupted · This may be due to network issues — please try again.'
+  '压缩中断 · 可能是网络问题，请稍后重试。'
 
 export interface CompactionResult {
   boundaryMarker: SystemMessage
@@ -762,6 +771,13 @@ export async function compactConversation(
   }
 }
 
+function isProgressOrCompactTail(m: Message): boolean {
+  const x = m as { type?: string; isCompactSummary?: boolean }
+  if (x.type === 'progress') return true
+  if (isCompactBoundaryMessage(m)) return true
+  return x.type === 'user' && Boolean(x.isCompactSummary)
+}
+
 /**
  * Performs a partial compaction around the selected message index.
  * Direction 'from': summarizes messages after the index, keeps earlier ones.
@@ -791,12 +807,7 @@ export async function partialCompactConversation(
       direction === 'up_to'
         ? allMessages
             .slice(pivotIndex)
-            .filter(
-              m =>
-                m.type !== 'progress' &&
-                !isCompactBoundaryMessage(m) &&
-                !(m.type === 'user' && m.isCompactSummary),
-            )
+            .filter((m: Message) => !isProgressOrCompactTail(m))
         : allMessages.slice(0, pivotIndex).filter(m => m.type !== 'progress')
 
     if (messagesToSummarize.length === 0) {
@@ -1569,9 +1580,7 @@ export async function createAsyncAgentAttachmentsIfNeeded(
   context: ToolUseContext,
 ): Promise<AttachmentMessage[]> {
   const appState = context.getAppState()
-  const asyncAgents = Object.values(appState.tasks).filter(
-    (task): task is LocalAgentTaskState => task.type === 'local_agent',
-  )
+  const asyncAgents = Object.values(appState.tasks).filter(isLocalAgentTask)
 
   return asyncAgents.flatMap(agent => {
     if (

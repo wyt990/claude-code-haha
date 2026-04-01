@@ -132,7 +132,7 @@ export function MCPServerDesktopImportDialog(t0) {
   const t10 = `Found ${t8} MCP ${t9} in Claude Desktop.`;
   let t11;
   if ($[16] !== collisions.length) {
-    t11 = collisions.length > 0 && <Text color="warning">Note: Some servers already exist with the same name. If selected, they will be imported with a numbered suffix.</Text>;
+    t11 = collisions.length > 0 && <Text color="warning">提示：部分服务器已存在同名项。若仍选择导入，将自动添加数字后缀。</Text>;
     $[16] = collisions.length;
     $[17] = t11;
   } else {
@@ -140,7 +140,7 @@ export function MCPServerDesktopImportDialog(t0) {
   }
   let t12;
   if ($[18] === Symbol.for("react.memo_cache_sentinel")) {
-    t12 = <Text>Please select the servers you want to import:</Text>;
+    t12 = <Text>请选择要导入的服务器：</Text>;
     $[18] = t12;
   } else {
     t12 = $[18];
@@ -174,7 +174,7 @@ export function MCPServerDesktopImportDialog(t0) {
   }
   let t16;
   if ($[28] !== handleEscCancel || $[29] !== t10 || $[30] !== t11 || $[31] !== t15) {
-    t16 = <Dialog title="Import MCP Servers from Claude Desktop" subtitle={t10} color="success" onCancel={handleEscCancel} hideInputGuide={true}>{t11}{t12}{t15}</Dialog>;
+    t16 = <Dialog title="从 Claude Desktop 导入 MCP 服务器" subtitle={t10} color="success" onCancel={handleEscCancel} hideInputGuide={true}>{t11}{t12}{t15}</Dialog>;
     $[28] = handleEscCancel;
     $[29] = t10;
     $[30] = t11;
@@ -185,7 +185,7 @@ export function MCPServerDesktopImportDialog(t0) {
   }
   let t17;
   if ($[33] === Symbol.for("react.memo_cache_sentinel")) {
-    t17 = <Box paddingX={1}><Text dimColor={true} italic={true}><Byline><KeyboardShortcutHint shortcut="Space" action="select" /><KeyboardShortcutHint shortcut="Enter" action="confirm" /><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" /></Byline></Text></Box>;
+    t17 = <Box paddingX={1}><Text dimColor={true} italic={true}><Byline><KeyboardShortcutHint shortcut="Space" action="select" /><KeyboardShortcutHint shortcut="Enter" action="confirm" /><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="取消" /></Byline></Text></Box>;
     $[33] = t17;
   } else {
     t17 = $[33];

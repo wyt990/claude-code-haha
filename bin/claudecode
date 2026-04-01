@@ -1,13 +1,60 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
+# 解析「本脚本」所在目录的物理路径（处理 ~/.bun/bin/claudecode -> 仓库 bin 的符号链接）
+_script_dir_physical() {
+  local src="${BASH_SOURCE[0]}"
+  while [[ -L "$src" ]]; do
+    local d
+    d="$(cd -P "$(dirname "$src")" && pwd)"
+    src="$(readlink "$src")"
+    [[ "$src" != /* ]] && src="$d/$src"
+  done
+  cd -P "$(dirname "$src")" && pwd
+}
 
-# Force recovery CLI (simple readline REPL, no Ink TUI)
-if [[ "${CLAUDE_CODE_FORCE_RECOVERY_CLI:-0}" == "1" ]]; then
-  exec bun --env-file=.env ./src/localRecoveryCli.ts "$@"
+# 从某目录向上查找 claude-code 仓库根（含 package.json 与 cli 入口）
+_find_repo_root_from() {
+  local d="$1"
+  while [[ "$d" != "/" ]]; do
+    if [[ -f "$d/package.json" && -f "$d/src/entrypoints/cli.tsx" ]]; then
+      echo "$d"
+      return 0
+    fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
+
+SCRIPT_DIR="$(_script_dir_physical)"
+# 常见布局：…/bin/claudecode → 仓库根为 bin 的上一级
+ROOT_DIR=""
+if [[ -f "$SCRIPT_DIR/../package.json" && -f "$SCRIPT_DIR/../src/entrypoints/cli.tsx" ]]; then
+  ROOT_DIR="$(cd -P "$SCRIPT_DIR/.." && pwd)"
+else
+  ROOT_DIR="$(_find_repo_root_from "$SCRIPT_DIR" || true)"
+fi
+if [[ -z "${ROOT_DIR}" ]]; then
+  if [[ -n "${CLAUDE_CODE_ROOT:-}" && -f "${CLAUDE_CODE_ROOT}/src/entrypoints/cli.tsx" ]]; then
+    ROOT_DIR="${CLAUDE_CODE_ROOT}"
+  elif [[ -f "/apps/claude-code/src/entrypoints/cli.tsx" ]]; then
+    ROOT_DIR="/apps/claude-code"
+  else
+    echo "claudecode: 无法定位 Claude Code 仓库根目录（未找到 src/entrypoints/cli.tsx）。" >&2
+    echo "请设置环境变量 CLAUDE_CODE_ROOT 指向本仓库根路径，或使用指向仓库 bin/claudecode 的符号链接。" >&2
+    exit 1
+  fi
 fi
 
-# Default: full CLI with Ink TUI
-exec bun --env-file=.env ./src/entrypoints/cli.tsx "$@"
+# 不要 cd 到 ROOT_DIR：保留用户当前目录作为项目 cwd（/init 等针对当前项目）。
+#
+# 必须显式 --preload：Bun 只在「当前目录」下读 bunfig.toml；在其它项目目录执行时
+# 不会加载仓库里的 preload，globalThis.MACRO 未定义 → ReferenceError。
+
+BUN_COMMON=(--preload="$ROOT_DIR/preload.ts" --env-file="$ROOT_DIR/.env")
+
+if [[ "${CLAUDE_CODE_FORCE_RECOVERY_CLI:-0}" == "1" ]]; then
+  exec bun "${BUN_COMMON[@]}" "$ROOT_DIR/src/localRecoveryCli.ts" "$@"
+fi
+
+exec bun "${BUN_COMMON[@]}" "$ROOT_DIR/src/entrypoints/cli.tsx" "$@"

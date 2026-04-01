@@ -53,10 +53,6 @@ import { BASH_TOOL_NAME } from '../../tools/BashTool/toolName.js'
 /* eslint-enable @typescript-eslint/no-require-imports */
 import { POWERSHELL_TOOL_NAME } from '../../tools/PowerShellTool/toolName.js'
 import { getToolsForDefaultPreset, parseToolPreset } from '../../tools.js'
-import {
-  getFsImplementation,
-  safeResolvePath,
-} from '../../utils/fsOperations.js'
 import { modelSupportsAutoMode } from '../betas.js'
 import { logForDebugging } from '../debug.js'
 import { gracefulShutdown } from '../gracefulShutdown.js'
@@ -664,23 +660,41 @@ export function parseBaseToolsFromCLI(baseTools: string[]): string[] {
   return parsedTools
 }
 
+const PWD_SYMLINK_CHECK_TIMEOUT_MS = 5_000
+
 /**
- * Check if processPwd is a symlink that resolves to originalCwd
+ * Whether processPwd is a symlink whose target equals originalCwd.
+ * Uses async fs + Promise.race timeout so realpath never blocks the event loop
+ * indefinitely (sync realpathSync can hang on bad NFS — timers never fire).
  */
-function isSymlinkTo({
+async function isSymlinkToAsync({
   processPwd,
   originalCwd,
 }: {
   processPwd: string
   originalCwd: string
-}): boolean {
-  // Use safeResolvePath to check if processPwd is a symlink and get its resolved path
-  const { resolvedPath: resolvedProcessPwd, isSymlink: isProcessPwdSymlink } =
-    safeResolvePath(getFsImplementation(), processPwd)
-
-  return isProcessPwdSymlink
-    ? resolvedProcessPwd === resolve(originalCwd)
-    : false
+}): Promise<boolean> {
+  const { lstat, realpath } = await import('fs/promises')
+  try {
+    return await Promise.race([
+      (async (): Promise<boolean> => {
+        const st = await lstat(processPwd)
+        if (!st.isSymbolicLink()) {
+          return false
+        }
+        const resolvedProcessPwd = await realpath(processPwd)
+        return resolvedProcessPwd === resolve(originalCwd)
+      })(),
+      new Promise<boolean>((_, reject) => {
+        setTimeout(
+          () => reject(new Error('PWD symlink check timeout')),
+          PWD_SYMLINK_CHECK_TIMEOUT_MS,
+        )
+      }),
+    ])
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -916,15 +930,18 @@ export async function initializeToolPermissionContext({
   >()
   // process.env.PWD may be a symlink, while getOriginalCwd() uses the real path
   const processPwd = process.env.PWD
-  if (
-    processPwd &&
-    processPwd !== getOriginalCwd() &&
-    isSymlinkTo({ originalCwd: getOriginalCwd(), processPwd })
-  ) {
-    additionalWorkingDirectories.set(processPwd, {
-      path: processPwd,
-      source: 'session',
-    })
+  if (processPwd && processPwd !== getOriginalCwd()) {
+    if (
+      await isSymlinkToAsync({
+        originalCwd: getOriginalCwd(),
+        processPwd,
+      })
+    ) {
+      additionalWorkingDirectories.set(processPwd, {
+        path: processPwd,
+        source: 'session',
+      })
+    }
   }
 
   // Check if bypassPermissions mode is available (not disabled by Statsig gate or settings)

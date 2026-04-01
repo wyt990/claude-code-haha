@@ -10,6 +10,10 @@ import { flushInteractionTime } from 'src/bootstrap/state.js';
 import { getYogaCounters } from 'src/native-ts/yoga-layout/index.js';
 import { logForDebugging } from 'src/utils/debug.js';
 import { logError } from 'src/utils/log.js';
+import {
+  shouldEmitStartupProgressToStderr,
+  shouldLogInkReconcilerErrorsToStderr,
+} from 'src/utils/startupProgressStderr.js';
 import { format } from 'util';
 import { colorize } from './colorize.js';
 import App from './components/App.js';
@@ -38,6 +42,57 @@ import { CURSOR_HOME, cursorMove, cursorPosition, DISABLE_KITTY_KEYBOARD, DISABL
 import { DBP, DFE, DISABLE_MOUSE_TRACKING, ENABLE_MOUSE_TRACKING, ENTER_ALT_SCREEN, EXIT_ALT_SCREEN, SHOW_CURSOR } from './termio/dec.js';
 import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, setClipboard, supportsTabStatus, wrapForMultiplexer } from './termio/osc.js';
 import { TerminalWriteProvider } from './useTerminalNotification.js';
+
+/** 仅前几帧写 stderr 诊断（首帧常在 setup 对话框，REPL 挂载在后面几帧） */
+let inkStartupDiagFrameCount = 0;
+const INK_STARTUP_DIAG_MAX_FRAMES = 5;
+
+/**
+ * 默认 createContainer 把 reconciler 错误交给 noop，首屏子组件 throw 时表现为「黑屏」且无任何日志。
+ * onUncaughtError：stderr 为 TTY 时即写（见 shouldLogInkReconcilerErrorsToStderr）。onCaughtError 仅 STARTUP_PROGRESS 时写。
+ */
+function inkReconcilerOnUncaughtError(
+  error: unknown,
+  errorInfo: { componentStack?: string },
+): void {
+  if (!shouldLogInkReconcilerErrorsToStderr()) {
+    return;
+  }
+  try {
+    const msg = error instanceof Error ? error.message : String(error);
+    writeSync(2, `Claude Code〔React〕onUncaughtError: ${msg}\n`);
+    if (error instanceof Error && error.stack) {
+      writeSync(2, `${error.stack}\n`);
+    }
+    if (errorInfo.componentStack) {
+      writeSync(2, `${errorInfo.componentStack}\n`);
+    }
+  } catch {
+    /* ignore */
+  }
+  logError(error);
+}
+
+function inkReconcilerOnCaughtError(
+  error: unknown,
+  errorInfo: { componentStack?: string; errorBoundary?: unknown },
+): void {
+  if (!shouldEmitStartupProgressToStderr()) {
+    return;
+  }
+  try {
+    const msg = error instanceof Error ? error.message : String(error);
+    writeSync(2, `Claude Code〔React〕onCaughtError: ${msg}\n`);
+    if (error instanceof Error && error.stack) {
+      writeSync(2, `${error.stack}\n`);
+    }
+    if (errorInfo.componentStack) {
+      writeSync(2, `${errorInfo.componentStack}\n`);
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 // Alt-screen: renderer.ts sets cursor.visible = !isTTY || screen.height===0,
 // which is always false in alt-screen (TTY + content fills screen).
@@ -259,14 +314,15 @@ export default class Ink {
 
     // @ts-expect-error @types/react-reconciler@0.32.3 declares 11 args with transitionCallbacks,
     // but react-reconciler 0.33.0 source only accepts 10 args (no transitionCallbacks)
-    this.container = reconciler.createContainer(this.rootNode, ConcurrentRoot, null, false, null, 'id', noop,
+    this.container = reconciler.createContainer(this.rootNode, ConcurrentRoot, null, false, null, 'id',
     // onUncaughtError
-    noop,
+    inkReconcilerOnUncaughtError,
     // onCaughtError
-    noop,
+    inkReconcilerOnCaughtError,
     // onRecoverableError
-    noop // onDefaultTransitionIndicator
-    );
+    noop,
+    // onDefaultTransitionIndicator
+    noop);
     if ("production" === 'development') {
       reconciler.injectIntoDevTools({
         bundleType: 0,
@@ -1451,6 +1507,19 @@ export default class Ink {
     reconciler.updateContainerSync(tree, this.container, null, noop);
     // @ts-expect-error flushSyncWork exists in react-reconciler but not in @types/react-reconciler
     reconciler.flushSyncWork();
+    if (inkStartupDiagFrameCount < INK_STARTUP_DIAG_MAX_FRAMES) {
+      inkStartupDiagFrameCount += 1;
+      try {
+        const {
+          startupProgressStderr,
+        } = require('../utils/startupProgressStderr.js') as typeof import('../utils/startupProgressStderr.js');
+        startupProgressStderr(
+          `Ink：第 ${inkStartupDiagFrameCount}/${INK_STARTUP_DIAG_MAX_FRAMES} 帧 flushSync 完成（含本帧内 useInsertionEffect）`,
+        );
+      } catch {
+        /* ignore */
+      }
+    }
   }
   unmount(error?: Error | number | null): void {
     if (this.isUnmounted) {

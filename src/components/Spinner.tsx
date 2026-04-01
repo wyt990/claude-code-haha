@@ -446,7 +446,7 @@ function _temp5(s) {
   return s.remoteConnectionStatus;
 }
 function _temp4() {
-  return sample(getSpinnerVerbs()) ?? "Working";
+  return sample(getSpinnerVerbs()) ?? '工作中';
 }
 export function BriefIdleStatus() {
   const $ = _c(9);

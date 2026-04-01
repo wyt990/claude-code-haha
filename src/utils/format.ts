@@ -165,11 +165,24 @@ export function formatRelativeTime(
   for (const { unit, seconds: intervalSeconds, shortUnit } of intervals) {
     if (Math.abs(diffInSeconds) >= intervalSeconds) {
       const value = Math.trunc(diffInSeconds / intervalSeconds)
-      // For short style, use custom format
+      // For short style, use custom format (zh-CN compact)
       if (style === 'narrow') {
-        return diffInSeconds < 0
-          ? `${Math.abs(value)}${shortUnit} ago`
-          : `in ${value}${shortUnit}`
+        const past = diffInSeconds < 0
+        const n = Math.abs(value)
+        const narrowZh: Record<string, { past: string; future: string }> = {
+          y: { past: `${n}年前`, future: `${value}年后` },
+          mo: { past: `${n}个月前`, future: `${value}个月后` },
+          w: { past: `${n}周前`, future: `${value}周后` },
+          d: { past: `${n}天前`, future: `${value}天后` },
+          h: { past: `${n}小时前`, future: `${value}小时后` },
+          m: { past: `${n}分钟前`, future: `${value}分钟后` },
+          s: { past: `${n}秒前`, future: `${value}秒后` },
+        }
+        const z = narrowZh[shortUnit]
+        if (z) {
+          return past ? z.past : z.future
+        }
+        return past ? `${n}${shortUnit}前` : `${value}${shortUnit}后`
       }
       // For days and longer, use long style regardless of the style parameter
       return getRelativeTimeFormat('long', numeric).format(value, unit)
@@ -178,7 +191,7 @@ export function formatRelativeTime(
 
   // For values less than 1 second
   if (style === 'narrow') {
-    return diffInSeconds <= 0 ? '0s ago' : 'in 0s'
+    return diffInSeconds <= 0 ? '刚刚' : '即将'
   }
   return getRelativeTimeFormat(style, numeric).format(0, 'second')
 }
@@ -213,7 +226,7 @@ export function formatLogMetadata(log: {
   const sizeOrCount =
     log.fileSize !== undefined
       ? formatFileSize(log.fileSize)
-      : `${log.messageCount} messages`
+      : `${log.messageCount} 条消息`
   const parts = [
     formatRelativeTimeAgo(log.modified, { style: 'short' }),
     ...(log.gitBranch ? [log.gitBranch] : []),

@@ -13,34 +13,34 @@ type OutputFormat = 'text' | 'json'
 function printHelp(): void {
   process.stdout.write(
     [
-      'Usage: claude-haha [options] [prompt]',
+      '用法：claudecode [选项] [提示词]',
       '',
-      'Local recovery mode for this leaked source tree.',
+      '本地降级模式（简化版 readline 交互）。',
       '',
-      'Options:',
-      '  -h, --help                    Show help',
-      '  -v, --version                 Show version',
-      '  (no args)                     Start local interactive mode',
-      '  -p, --print                   Send a single prompt and print the result',
-      '  --model <model>               Override model',
-      '  --system-prompt <text>        Override system prompt',
-      '  --system-prompt-file <file>   Read system prompt from file',
-      '  --append-system-prompt <text> Append to the system prompt',
-      '  --output-format <format>      text (default) or json',
+      '选项：',
+      '  -h, --help                    显示帮助信息',
+      '  -v, --version                 显示版本号',
+      '  （无参数）                     启动本地交互模式',
+      '  -p, --print                   发送单个提示词并输出结果',
+      '  --model <model>               覆盖模型设置',
+      '  --system-prompt <text>        覆盖系统提示词',
+      '  --system-prompt-file <file>   从文件读取系统提示词',
+      '  --append-system-prompt <text> 追加到系统提示词末尾',
+      '  --output-format <format>      输出格式：text（默认）或 json',
       '',
-      'Environment:',
-      '  ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN',
+      '环境变量：',
+      '  ANTHROPIC_API_KEY 或 ANTHROPIC_AUTH_TOKEN',
       '  ANTHROPIC_BASE_URL',
       '  ANTHROPIC_MODEL',
       '  API_TIMEOUT_MS',
-      '  CLAUDE_CODE_USE_OPENAI_COMPAT_API  OpenAI Chat Completions 路径',
+      '  CLAUDE_CODE_USE_OPENAI_COMPAT_API  OpenAI Chat Completions 兼容模式',
       '',
     ].join('\n'),
   )
 }
 
 function printVersion(): void {
-  process.stdout.write('999.0.0-local (Claude Code local recovery)\n')
+  process.stdout.write('100.0.0-local (Claude Code 本地降级版)\n')
 }
 
 function parseArgs(argv: string[]) {
@@ -150,7 +150,7 @@ async function run(): Promise<void> {
 
   const prompt = parsed.prompt || (await readPromptFromStdin())
   if (!prompt) {
-    process.stderr.write('Error: prompt is required\n')
+    process.stderr.write('错误：请输入提示词\n')
     process.exitCode = 1
     return
   }
@@ -159,7 +159,7 @@ async function run(): Promise<void> {
   const authToken = process.env.ANTHROPIC_AUTH_TOKEN
   if (!apiKey && !authToken) {
     process.stderr.write(
-      'Error: set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN\n',
+      '错误：请设置 ANTHROPIC_API_KEY 或 ANTHROPIC_AUTH_TOKEN\n',
     )
     process.exitCode = 1
     return
@@ -171,7 +171,7 @@ async function run(): Promise<void> {
     process.env.ANTHROPIC_MODEL
 
   if (!model) {
-    process.stderr.write('Error: model is required\n')
+    process.stderr.write('错误：请指定模型\n')
     process.exitCode = 1
     return
   }
@@ -238,7 +238,7 @@ async function runInteractive(parsed: {
   const authToken = process.env.ANTHROPIC_AUTH_TOKEN
   if (!apiKey && !authToken) {
     process.stderr.write(
-      'Error: set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN\n',
+      '错误：请设置 ANTHROPIC_API_KEY 或 ANTHROPIC_AUTH_TOKEN\n',
     )
     process.exitCode = 1
     return
@@ -250,10 +250,14 @@ async function runInteractive(parsed: {
     process.env.ANTHROPIC_MODEL
 
   if (!model) {
-    process.stderr.write('Error: model is required\n')
+    process.stderr.write('错误：请指定模型\n')
     process.exitCode = 1
     return
   }
+
+  // IDE / 重定向场景下 stdout 常非 TTY，readline 与欢迎语写到 stderr 才能看见
+  const lineOut =
+    process.stdout.isTTY ? process.stdout : process.stderr
 
   const system = getSystemPrompt(parsed.systemPrompt, parsed.appendSystemPrompt)
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = []
@@ -272,12 +276,18 @@ async function runInteractive(parsed: {
       })
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout,
+    output: lineOut,
     prompt: 'you> ',
   })
 
-  process.stdout.write(
-    `Claude Haha local interactive mode\nmodel: ${model}\ncommands: /exit, /clear\n\n`,
+  if (!process.stdout.isTTY && process.stderr.isTTY) {
+    lineOut.write(
+      '提示：标准输出不是终端，交互提示与回复将显示在 stderr。\n\n',
+    )
+  }
+
+  lineOut.write(
+    `Claude Code 本地交互模式\n模型：${model}\n命令：/exit（退出）, /clear（清空历史）\n\n`,
   )
   rl.prompt()
 
@@ -293,7 +303,7 @@ async function runInteractive(parsed: {
     }
     if (input === '/clear') {
       messages.length = 0
-      process.stdout.write('history cleared\n')
+      lineOut.write('历史记录已清空\n')
       rl.prompt()
       continue
     }
@@ -332,12 +342,12 @@ async function runInteractive(parsed: {
           .map(block => block.text)
           .join('\n')
       }
-      process.stdout.write(`claude> ${text}\n\n`)
+      lineOut.write(`claude> ${text}\n\n`)
       messages.push({ role: 'assistant', content: text })
     } catch (error) {
       const message =
         error instanceof Error ? error.message : String(error)
-      process.stderr.write(`error: ${message}\n`)
+      process.stderr.write(`错误：${message}\n`)
     }
     rl.prompt()
   }

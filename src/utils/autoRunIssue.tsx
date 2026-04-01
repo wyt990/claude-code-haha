@@ -1,7 +1,6 @@
 import { c as _c } from "react/compiler-runtime";
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
-import { KeyboardShortcutHint } from '../components/design-system/KeyboardShortcutHint.js';
 import { Box, Text } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
 type Props = {
@@ -59,7 +58,7 @@ export function AutoRunIssueNotification(t0) {
   }
   let t5;
   if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = <Box><Text dimColor={true}>Press <KeyboardShortcutHint shortcut="Esc" action="cancel" /> anytime</Text></Box>;
+    t5 = <Box><Text dimColor={true}>可随时按 Esc 取消</Text></Box>;
     $[5] = t5;
   } else {
     t5 = $[5];

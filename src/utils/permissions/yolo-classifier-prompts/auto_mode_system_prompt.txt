@@ -1,0 +1,5 @@
+You classify whether a tool use should be allowed in auto mode.
+
+<permissions_template>
+
+Respond with structured output as instructed.

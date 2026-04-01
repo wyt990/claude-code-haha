@@ -135,8 +135,8 @@ export function ResumeTask({
         {renderErrorSpecificGuidance(loadErrorType)}
 
         <Text dimColor>
-          Press <Text bold>Ctrl+R</Text> to retry · Press{' '}
-          <Text bold>{escKey}</Text> to cancel
+按 <Text bold>Ctrl+R</Text> 重试 · 按{' '}
+          <Text bold>{escKey}</Text> 取消
         </Text>
       </Box>;
   }
@@ -148,7 +148,7 @@ export function ResumeTask({
         </Text>
         <Box marginTop={1}>
           <Text dimColor>
-            Press <Text bold>{escKey}</Text> to cancel
+            按 <Text bold>{escKey}</Text> 取消
           </Text>
         </Box>
       </Box>;
@@ -214,7 +214,7 @@ export function ResumeTask({
           <Byline>
             <KeyboardShortcutHint shortcut="↑/↓" action="select" />
             <KeyboardShortcutHint shortcut="Enter" action="confirm" />
-            <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
+            <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="取消" />
           </Byline>
         </Text>
       </Box>

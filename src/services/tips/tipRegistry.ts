@@ -170,8 +170,8 @@ const externalTips: Tip[] = [
     id: 'terminal-setup',
     content: async () =>
       env.terminal === 'Apple_Terminal'
-        ? 'Run /terminal-setup to enable convenient terminal integration like Option + Enter for new line and more'
-        : 'Run /terminal-setup to enable convenient terminal integration like Shift + Enter for new line and more',
+        ? '运行 /terminal-setup 可启用终端集成（如 Option+Enter 换行等）'
+        : '运行 /terminal-setup 可启用终端集成（如 Shift+Enter 换行等）',
     cooldownSessions: 10,
     async isRelevant() {
       const config = getGlobalConfig()
@@ -185,8 +185,8 @@ const externalTips: Tip[] = [
     id: 'shift-enter',
     content: async () =>
       env.terminal === 'Apple_Terminal'
-        ? 'Press Option+Enter to send a multi-line message'
-        : 'Press Shift+Enter to send a multi-line message',
+        ? '按 Option+Enter 发送多行消息'
+        : '按 Shift+Enter 发送多行消息',
     cooldownSessions: 10,
     async isRelevant() {
       const config = getGlobalConfig()
@@ -201,8 +201,8 @@ const externalTips: Tip[] = [
     id: 'shift-enter-setup',
     content: async () =>
       env.terminal === 'Apple_Terminal'
-        ? 'Run /terminal-setup to enable Option+Enter for new lines'
-        : 'Run /terminal-setup to enable Shift+Enter for new lines',
+        ? '运行 /terminal-setup 以启用 Option+Enter 换行'
+        : '运行 /terminal-setup 以启用 Shift+Enter 换行',
     cooldownSessions: 10,
     async isRelevant() {
       if (!shouldOfferTerminalSetup()) {

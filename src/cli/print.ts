@@ -777,9 +777,39 @@ export async function runHeadless(
   const isUsingSdkUrl = Boolean(options.sdkUrl)
 
   if (!inputPrompt && !hasValidResumeSessionId && !isUsingSdkUrl) {
-    process.stderr.write(
-      `Error: Input must be provided either through stdin or as a prompt argument when using --print\n`,
-    )
+    const explicitPrint =
+      process.argv.includes('-p') || process.argv.includes('--print')
+    const noTtyOut = !process.stdout.isTTY
+    if (noTtyOut && !explicitPrint) {
+      const headlessNoInputHelp = [
+        '错误：当前标准输出不是终端（TTY），程序已按无头模式运行，但未提供提示词或标准输入。',
+        '这常见于在 IDE「运行」面板、脚本重定向 stdout、或管道中启动交互式命令。',
+        '',
+        '可选做法：',
+        '  · 在系统终端（GNOME Terminal、Windows Terminal 等）中直接执行 ./bin/claudecode',
+        '  · 无头单次问答：./bin/claudecode -p "你的问题"',
+        '  · 降级 readline 界面：CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claudecode',
+        '',
+      ].join('\n')
+      process.stderr.write(headlessNoInputHelp)
+      // 部分 IDE/自动化终端只展示 stdout；同步写 stdout 以免用户看到「无任何输出就退出」
+      try {
+        process.stdout.write(headlessNoInputHelp)
+      } catch {
+        /* ignore broken stdout */
+      }
+    } else {
+      const printModeNeedsInput =
+        'Error: Input must be provided either through stdin or as a prompt argument when using --print\n'
+      process.stderr.write(printModeNeedsInput)
+      if (noTtyOut) {
+        try {
+          process.stdout.write(printModeNeedsInput)
+        } catch {
+          /* ignore broken stdout */
+        }
+      }
+    }
     gracefulShutdownSync(1)
     return
   }

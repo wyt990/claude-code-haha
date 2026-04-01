@@ -344,51 +344,47 @@ export function CollapsedReadSearchContent({
   }
   if (searchCount > 0) {
     const isFirst_0 = nonMemParts.length === 0;
-    const searchVerb = isActiveGroup ? isFirst_0 ? 'Searching for' : 'searching for' : isFirst_0 ? 'Searched for' : 'searched for';
+    const searchVerb = isActiveGroup ? isFirst_0 ? '正在搜索' : '搜索' : isFirst_0 ? '已搜索' : '已搜索';
     if (!isFirst_0) {
       nonMemParts.push(<Text key="comma-s">, </Text>);
     }
     nonMemParts.push(<Text key="search">
-        {searchVerb} <Text bold>{searchCount}</Text>{' '}
-        {searchCount === 1 ? 'pattern' : 'patterns'}
+        {searchVerb} <Text bold>{searchCount}</Text> 个模式
       </Text>);
   }
   if (readCount > 0) {
     const isFirst_1 = nonMemParts.length === 0;
-    const readVerb = isActiveGroup ? isFirst_1 ? 'Reading' : 'reading' : isFirst_1 ? 'Read' : 'read';
+    const readVerb = isActiveGroup ? isFirst_1 ? '正在读取' : '读取' : isFirst_1 ? '已读取' : '已读取';
     if (!isFirst_1) {
       nonMemParts.push(<Text key="comma-r">, </Text>);
     }
     nonMemParts.push(<Text key="read">
-        {readVerb} <Text bold>{readCount}</Text>{' '}
-        {readCount === 1 ? 'file' : 'files'}
+        {readVerb} <Text bold>{readCount}</Text> 个文件
       </Text>);
   }
   if (listCount > 0) {
     const isFirst_2 = nonMemParts.length === 0;
-    const listVerb = isActiveGroup ? isFirst_2 ? 'Listing' : 'listing' : isFirst_2 ? 'Listed' : 'listed';
+    const listVerb = isActiveGroup ? isFirst_2 ? '正在列出' : '列出' : isFirst_2 ? '已列出' : '已列出';
     if (!isFirst_2) {
       nonMemParts.push(<Text key="comma-l">, </Text>);
     }
     nonMemParts.push(<Text key="list">
-        {listVerb} <Text bold>{listCount}</Text>{' '}
-        {listCount === 1 ? 'directory' : 'directories'}
+        {listVerb} <Text bold>{listCount}</Text> 个目录
       </Text>);
   }
   if (replCount > 0) {
-    const replVerb = isActiveGroup ? "REPL'ing" : "REPL'd";
+    const replVerb = isActiveGroup ? '正在 REPL' : '已 REPL';
     if (nonMemParts.length > 0) {
       nonMemParts.push(<Text key="comma-repl">, </Text>);
     }
     nonMemParts.push(<Text key="repl">
-        {replVerb} <Text bold>{replCount}</Text>{' '}
-        {replCount === 1 ? 'time' : 'times'}
+        {replVerb} <Text bold>{replCount}</Text> 次
       </Text>);
   }
   if (mcpCallCount > 0) {
     const serverLabel = message.mcpServerNames?.map(n => n.replace(/^claude\.ai /, '')).join(', ') || 'MCP';
     const isFirst_3 = nonMemParts.length === 0;
-    const verb_0 = isActiveGroup ? isFirst_3 ? 'Querying' : 'querying' : isFirst_3 ? 'Queried' : 'queried';
+    const verb_0 = isActiveGroup ? isFirst_3 ? '正在查询' : '查询' : isFirst_3 ? '已查询' : '已查询';
     if (!isFirst_3) {
       nonMemParts.push(<Text key="comma-mcp">, </Text>);
     }
@@ -396,7 +392,7 @@ export function CollapsedReadSearchContent({
         {verb_0} {serverLabel}
         {mcpCallCount > 1 && <>
             {' '}
-            <Text bold>{mcpCallCount}</Text> times
+            <Text bold>{mcpCallCount}</Text> 次
           </>}
       </Text>);
   }

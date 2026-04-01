@@ -1,4 +1,4 @@
-# Claude Code Haha
+# Claude Code
 
 <p align="right"><strong>中文</strong> | <a href="./README.en.md">English</a></p>
 
@@ -132,23 +132,23 @@ ANTHROPIC_MODEL=你在后台配置的模型名
 
 ```bash
 # 交互 TUI 模式（完整界面）
-./bin/claude-haha
+./bin/claudecode
 
 # 无头模式（单次问答）
-./bin/claude-haha -p "your prompt here"
+./bin/claudecode -p "your prompt here"
 
 # 管道输入
-echo "explain this code" | ./bin/claude-haha -p
+echo "explain this code" | ./bin/claudecode -p
 
 # 查看所有选项
-./bin/claude-haha --help
+./bin/claudecode --help
 ```
 
 #### Windows
 
 > **前置要求**：必须安装 [Git for Windows](https://git-scm.com/download/win)（提供 Git Bash，项目内部 Shell 执行依赖它）。
 
-Windows 下启动脚本 `bin/claude-haha` 是 bash 脚本，无法在 cmd / PowerShell 中直接运行。请使用以下方式：
+Windows 下启动脚本 `bin/claudecode` 是 bash 脚本，无法在 cmd / PowerShell 中直接运行。请使用以下方式：
 
 **方式一：PowerShell / cmd 直接调用 Bun（推荐）**
 
@@ -167,10 +167,135 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 
 ```bash
 # 在 Git Bash 终端中，与 macOS/Linux 用法一致
-./bin/claude-haha
+./bin/claudecode
 ```
 
 > **注意**：部分功能（语音输入、Computer Use、Sandbox 隔离等）在 Windows 上不可用，不影响核心 TUI 交互。
+
+### 5. 编译为独立可执行文件（可选）
+
+本项目依赖 **Bun 运行时**（含 `bun:*` 等 API），不能像纯 Node 项目那样直接用 `pkg` 等打成 Node 单文件；应使用 Bun 的 **`bun build --compile`**，把应用与一份 Bun 运行时打进**单个可执行文件**。
+
+> **说明**：命令行 `bun build --help` 里对 `--target` 的简述（`browser` / `bun` / `node`）主要针对**普通打包**；在 **`--compile` 独立可执行文件**场景下，官方还支持 **`bun-<os>-<arch>`** 形式的交叉编译目标，以下以 [Standalone executables](https://bun.com/docs/bundler/executables) 为准。
+
+**前置**
+
+```bash
+bun install
+```
+
+下文统一以 **完整 TUI 主入口** `./src/entrypoints/cli.tsx` 为例；输出文件名可按需修改。
+
+#### 本机构建（不指定 `--target`，产物对应当前机器）
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode
+```
+
+- **Linux / macOS**：一般为无扩展名文件，`chmod +x claudecode`。
+- **Windows**：建议使用 `--outfile=claudecode.exe`；若省略 `.exe`，Bun 也可能自动补上（见官方文档）。
+
+在本机为 Windows 构建时，可选用 `bun build --help` 中的 **`--windows-hide-console`**、**`--windows-icon`** 等元数据选项。
+
+#### 交叉编译（指定 `--target`）
+
+`--target` 与 `--outfile` 的先后顺序**任意**，只要参数都传给 `bun build` 即可。
+
+**在 Linux / macOS 上产出 Windows x64 可执行文件**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=bun-windows-x64
+```
+
+兼容更老 CPU（无 AVX2 等，若用户遇到 `Illegal instruction` 可改用它）：
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=bun-windows-x64-baseline
+```
+
+明确面向较新 CPU、可能更快：
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=bun-windows-x64-modern
+```
+
+**在 Windows / macOS 上产出 Linux x64（glibc，常见服务器）**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-x64
+```
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-x64-baseline
+```
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-x64-modern
+```
+
+**Alpine 等 musl 环境（Linux x64 / arm64）**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-x64-musl
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-arm64-musl
+```
+
+**Linux ARM64（如部分云主机、树莓派等）**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-linux-arm64
+```
+
+**Windows ARM64**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=bun-windows-arm64
+```
+
+**macOS（Apple Silicon / Intel）**
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-darwin-arm64
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode --target=bun-darwin-x64
+```
+
+（`bun-darwin-x64` 同样可选用 `-baseline` / `-modern` 变体，见官方文档。）
+
+#### 官方支持的 `--compile` 目标一览
+
+| `--target` | 系统 | 架构 | Baseline / Modern 变体 | libc |
+|------------|------|------|-------------------------|------|
+| `bun-linux-x64` | Linux | x64 | 有 | glibc |
+| `bun-linux-arm64` | Linux | arm64 | 仅默认 | glibc |
+| `bun-linux-x64-musl` | Linux | x64 | 有 | musl |
+| `bun-linux-arm64-musl` | Linux | arm64 | 仅默认 | musl |
+| `bun-windows-x64` | Windows | x64 | 有 | - |
+| `bun-windows-arm64` | Windows | arm64 | 仅默认 | - |
+| `bun-darwin-x64` | macOS | x64 | 有 | - |
+| `bun-darwin-arm64` | macOS | arm64 | 仅默认 | - |
+
+x64 下的 **`-baseline`**：面向更老 CPU（文档示例为 Nehalem 及以后）；**`-modern`**：明确 2013 年以后 CPU（如 Haswell），可能更快。若目标机报 **`Illegal instruction`**，可换 **baseline** 构建。
+
+#### 使用本机已下载的 Bun 做交叉编译（可选）
+
+若不能自动联网下载目标运行时，可使用：
+
+```bash
+bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=bun-windows-x64 \
+  --compile-executable-path=/path/to/windows-bun.exe
+```
+
+路径需指向**与 `--target` 一致的平台**的 Bun 可执行文件。
+
+#### 其它注意
+
+- 首次为某个 `--target` 构建时，Bun 通常会**下载**对应平台的运行时，需网络畅通（或使用 `--compile-executable-path`）。
+- 官方文档说明：**在非 Windows 上交叉编译 Windows 产物时**，依赖 Windows API 的 **`--windows-icon` 等元数据选项目前不可用**；在本机 Windows 上为 Windows 构建时可用。
+- 二进制体积较大；若不需要单文件，可在目标机安装 Bun 后使用 `bun --env-file=.env ./src/entrypoints/cli.tsx`。
+- 含 **原生扩展（`.node`）** 时，交叉编译可能失败，需按报错处理或在该平台本机构建。
+- **降级 Recovery CLI** 单独入口：`bun build --compile ./src/localRecoveryCli.ts --outfile=claude-recovery`，交叉编译时同样加上对应的 `--target=...` 即可。
+
+更多选项以 **`bun build --help`** 与 **[Standalone executables](https://bun.com/docs/bundler/executables)** 为准。
 
 ---
 
@@ -200,7 +325,7 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 如果完整 TUI 出现问题，可以使用简化版 readline 交互模式：
 
 ```bash
-CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claude-haha
+CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claudecode
 ```
 
 ---
@@ -223,7 +348,7 @@ CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claude-haha
 ## 项目结构
 
 ```
-bin/claude-haha          # 入口脚本
+bin/claudecode          # 入口脚本
 preload.ts               # Bun preload（设置 MACRO 全局变量）
 .env.example             # 环境变量模板
 docs/                    # 说明文档（含 OpenAI 兼容方案等）

@@ -21,7 +21,7 @@ startKeychainPrefetch();
 import { feature } from 'bun:bundle';
 import { Command as CommanderCommand, InvalidArgumentError, Option } from '@commander-js/extra-typings';
 import chalk from 'chalk';
-import { readFileSync } from 'fs';
+import { readFileSync, writeSync } from 'fs';
 import mapValues from 'lodash-es/mapValues.js';
 import pickBy from 'lodash-es/pickBy.js';
 import uniqBy from 'lodash-es/uniqBy.js';
@@ -204,6 +204,11 @@ import { checkOutTeleportedSessionBranch, processMessagesForTeleportResume, tele
 import { shouldEnableThinkingByDefault, type ThinkingConfig } from './utils/thinking.js';
 import { initUser, resetUserCache } from './utils/user.js';
 import { getTmuxInstallInstructions, isTmuxAvailable, parsePRReference } from './utils/worktree.js';
+import { isFullscreenEnvEnabled } from './utils/fullscreen.js';
+import {
+  shouldEmitStartupProgressToStderr,
+  startupProgressStderr,
+} from './utils/startupProgressStderr.js';
 
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 profileCheckpoint('main_tsx_imports_loaded');
@@ -1332,6 +1337,18 @@ async function run(): Promise<CommanderCommand> {
 
     // Get isNonInteractiveSession from state (was set before init())
     const isNonInteractiveSession = getIsNonInteractiveSession();
+    // 交互模式下后续有大量异步初始化；若磁盘/网络慢会长时间无界面。写原始 fd 2，避免被 Ink/console 补丁吞掉。
+    if (
+      !isNonInteractiveSession &&
+      process.stderr.isTTY &&
+      shouldEmitStartupProgressToStderr()
+    ) {
+      try {
+        writeSync(2, 'Claude Code：正在启动（加载配置、权限与插件）…\n');
+      } catch {
+        /* ignore */
+      }
+    }
 
     // Validate that fallback model is different from main model
     if (fallbackModel && options.model && fallbackModel === options.model) {
@@ -1752,6 +1769,17 @@ async function run(): Promise<CommanderCommand> {
       allowDangerouslySkipPermissions,
       addDirs: addDir
     });
+    if (
+      !isNonInteractiveSession &&
+      process.stderr.isTTY &&
+      shouldEmitStartupProgressToStderr()
+    ) {
+      try {
+        writeSync(2, 'Claude Code：权限与附加目录校验完成，正在加载命令、插件与终端初始化…\n');
+      } catch {
+        /* ignore */
+      }
+    }
     let toolPermissionContext = initResult.toolPermissionContext;
     const {
       warnings,
@@ -1938,6 +1966,17 @@ async function run(): Promise<CommanderCommand> {
     commandsPromise?.catch(() => {});
     agentDefsPromise?.catch(() => {});
     await setupPromise;
+    if (
+      !isNonInteractiveSession &&
+      process.stderr.isTTY &&
+      shouldEmitStartupProgressToStderr()
+    ) {
+      try {
+        writeSync(2, 'Claude Code：工作区 setup() 完成，正在加载斜杠命令与 Agent…\n');
+      } catch {
+        /* ignore */
+      }
+    }
     logForDebugging(`[STARTUP] setup() completed in ${Date.now() - setupStart}ms`);
     profileCheckpoint('action_after_setup');
 
@@ -2033,6 +2072,17 @@ async function run(): Promise<CommanderCommand> {
     // Join the promises kicked before setup() (or start fresh if
     // worktreeEnabled gated the early kick). Both memoized by cwd.
     const [commands, agentDefinitionsResult] = await Promise.all([commandsPromise ?? getCommands(currentCwd), agentDefsPromise ?? getAgentDefinitionsWithOverrides(currentCwd)]);
+    if (
+      !isNonInteractiveSession &&
+      process.stderr.isTTY &&
+      shouldEmitStartupProgressToStderr()
+    ) {
+      try {
+        writeSync(2, 'Claude Code：命令与 Agent 已加载，正在打开终端界面…\n');
+      } catch {
+        /* ignore */
+      }
+    }
     logForDebugging(`[STARTUP] Commands and agents loaded in ${Date.now() - commandsStart}ms`);
     profileCheckpoint('action_commands_loaded');
 
@@ -2233,6 +2283,19 @@ async function run(): Promise<CommanderCommand> {
         createRoot
       } = await import('./ink.js');
       root = await createRoot(ctx.renderOptions);
+      if (process.stderr.isTTY && shouldEmitStartupProgressToStderr()) {
+        try {
+          const fullscreenRepl = isFullscreenEnvEnabled();
+          writeSync(
+            2,
+            fullscreenRepl
+              ? '提示：全屏 REPL 使用终端「备用缓冲」（DEC ?1049，仍是同一窗口，不是第二块显示器）。滚动区可能只剩几行 stderr；请看终端工作区全屏并用方向键/Enter 完成引导或信任。受信目录可设 CLAUDE_CODE_SKIP_STARTUP_DIALOGS=1 跳过阻塞对话框。\n'
+              : '提示：当前为「主缓冲 + 滚动区」模式（未启用全屏 REPL）。主界面应出现在同一终端的滚动输出中。若仍看不见，可试 CLAUDE_CODE_NO_FLICKER=1 启用全屏布局，或受信目录 CLAUDE_CODE_SKIP_STARTUP_DIALOGS=1 跳过阻塞对话框。\n',
+          );
+        } catch {
+          /* ignore */
+        }
+      }
 
       // Log startup time now, before any blocking dialog renders. Logging
       // from REPL's first render (the old location) included however long
@@ -2246,6 +2309,7 @@ async function run(): Promise<CommanderCommand> {
       const setupScreensStart = Date.now();
       const onboardingShown = await showSetupScreens(root, permissionMode, allowDangerouslySkipPermissions, commands, enableClaudeInChrome, devChannels);
       logForDebugging(`[STARTUP] showSetupScreens() completed in ${Date.now() - setupScreensStart}ms`);
+      startupProgressStderr('showSetupScreens 已完成');
 
       // Now that trust is established and GrowthBook has auth headers,
       // resolve the --remote-control / --rc entitlement gate.
@@ -2259,6 +2323,7 @@ async function run(): Promise<CommanderCommand> {
           process.stderr.write(chalk.yellow(`${disabledReason}\n--rc flag ignored.\n`));
         }
       }
+      startupProgressStderr('--remote-control / --rc 门控已处理（若未使用该参数则无操作）');
 
       // Check for pending agent memory snapshot updates (only for --agent mode, ant-only)
       if (feature('AGENT_MEMORY_SNAPSHOT') && mainThreadAgentDefinition && isCustomAgent(mainThreadAgentDefinition) && mainThreadAgentDefinition.memory && mainThreadAgentDefinition.pendingSnapshotUpdate) {
@@ -2277,6 +2342,7 @@ async function run(): Promise<CommanderCommand> {
         }
         agentDef.pendingSnapshotUpdate = undefined;
       }
+      startupProgressStderr('Agent 内存快照对话框已跳过或已处理');
 
       // Skip executing /login if we just completed onboarding for it
       if (onboardingShown && prompt?.trim().toLowerCase() === '/login') {
@@ -2305,10 +2371,15 @@ async function run(): Promise<CommanderCommand> {
       // Validate that the active token's org matches forceLoginOrgUUID (if set
       // in managed settings). Runs after onboarding so managed settings and
       // login state are fully loaded.
-      const orgValidation = await validateForceLoginOrg();
-      if (!orgValidation.valid) {
+      const orgValidation = isEnvTruthy(
+        process.env.CLAUDE_CODE_SKIP_STARTUP_DIALOGS,
+      )
+        ? ({ valid: true } as const)
+        : await validateForceLoginOrg();
+      if (orgValidation.valid === false) {
         await exitWithError(root, orgValidation.message);
       }
+      startupProgressStderr('组织校验（forceLoginOrg）已结束');
     }
 
     // If gracefulShutdown was initiated (e.g., user rejected trust dialog),
@@ -2319,12 +2390,14 @@ async function run(): Promise<CommanderCommand> {
       logForDebugging('Graceful shutdown initiated, skipping further initialization');
       return;
     }
+    startupProgressStderr('未触发提前退出，继续加载 LSP / MCP / REPL…');
 
     // Initialize LSP manager AFTER trust is established (or in non-interactive mode
     // where trust is implicit). This prevents plugin LSP servers from executing
     // code in untrusted directories before user consent.
     // Must be after inline plugins are set (if any) so --plugin-dir LSP servers are included.
     initializeLspServerManager();
+    startupProgressStderr('LSP 管理器已初始化');
 
     // Show settings validation errors after trust is established
     // MCP config errors don't block settings from loading, so exclude them
@@ -2333,12 +2406,16 @@ async function run(): Promise<CommanderCommand> {
         errors
       } = getSettingsWithErrors();
       const nonMcpErrors = errors.filter(e => !e.mcpErrorMetadata);
-      if (nonMcpErrors.length > 0) {
+      if (
+        nonMcpErrors.length > 0 &&
+        !isEnvTruthy(process.env.CLAUDE_CODE_SKIP_STARTUP_DIALOGS)
+      ) {
         await launchInvalidSettingsDialog(root, {
           settingsErrors: nonMcpErrors,
           onExit: () => gracefulShutdownSync(1)
         });
       }
+      startupProgressStderr('非 MCP 类设置错误对话框已跳过或已关闭');
     }
 
     // Check quota status, fast mode, passes eligibility, and bootstrap data
@@ -2382,12 +2459,14 @@ async function run(): Promise<CommanderCommand> {
     if (!isNonInteractiveSession) {
       void refreshExampleCommands(); // Pre-fetch example commands (runs git log, no API call)
     }
+    startupProgressStderr('启动预取（quota/bootstrap 等）已调度或已跳过');
 
     // Resolve MCP configs (started early, overlaps with setup/trust dialog work)
     const {
       servers: existingMcpConfigs
     } = await mcpConfigPromise;
     logForDebugging(`[STARTUP] MCP configs resolved in ${mcpConfigResolvedMs}ms (awaited at +${Date.now() - mcpConfigStart}ms)`);
+    startupProgressStderr('await mcpConfigPromise 已完成（正在合并 MCP 配置）');
     // CLI flag (--mcp-config) should override file-based configs, matching settings precedence
     const allMcpConfigs = {
       ...existingMcpConfigs,
@@ -2406,6 +2485,7 @@ async function run(): Promise<CommanderCommand> {
       }
     }
     profileCheckpoint('action_mcp_configs_loaded');
+    startupProgressStderr('MCP 配置已拆分为 regular/sdk，prefetch/hooks 已启动');
 
     // Prefetch MCP resources after trust dialog (this is where execution happens).
     // Interactive mode only: print mode defers connects until headlessStore exists
@@ -2866,6 +2946,8 @@ async function run(): Promise<CommanderCommand> {
       return;
     }
 
+    startupProgressStderr('已离开无头分支，开始交互式 TUI 准备（模型日志与 initialState）');
+
     // Log model config at startup
     logEvent('tengu_startup_manual_model_config', {
       cli_flag: options.model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
@@ -3040,6 +3122,7 @@ async function run(): Promise<CommanderCommand> {
       // teammates reading their own identity, not the assistant-mode leader.
       teamContext: feature('KAIROS') ? assistantTeamContext ?? computeInitialTeamContext?.() : computeInitialTeamContext?.()
     };
+    startupProgressStderr('initialState 已构建');
 
     // Add CLI initial prompt to history
     if (inputPrompt) {
@@ -3104,6 +3187,7 @@ async function run(): Promise<CommanderCommand> {
       cliAgents,
       initialState
     };
+    startupProgressStderr('sessionConfig 与 resumeContext 已就绪，按 CLI 分支进入 REPL 或选择器');
     if (options.continue) {
       // Continue the most recent conversation directly
       let resumeSucceeded = false;
@@ -3137,6 +3221,7 @@ async function run(): Promise<CommanderCommand> {
           resume_duration_ms: Math.round(performance.now() - resumeStart)
         });
         resumeSucceeded = true;
+        startupProgressStderr('即将进入 REPL（--continue 恢复会话）');
         await launchRepl(root, {
           getFpsMetrics,
           stats,
@@ -3179,6 +3264,7 @@ async function run(): Promise<CommanderCommand> {
         return await exitWithError(root, err instanceof DirectConnectError ? err.message : String(err), () => gracefulShutdown(1));
       }
       const connectInfoMessage = createSystemMessage(`Connected to server at ${_pendingConnect.url}\nSession: ${directConnectConfig.sessionId}`, 'info');
+      startupProgressStderr('即将进入 REPL（Direct Connect）');
       await launchRepl(root, {
         getFpsMetrics,
         stats,
@@ -3245,6 +3331,7 @@ async function run(): Promise<CommanderCommand> {
         return await exitWithError(root, err instanceof SSHSessionError ? err.message : String(err), () => gracefulShutdown(1));
       }
       const sshInfoMessage = createSystemMessage(_pendingSSH.local ? `Local ssh-proxy test session\ncwd: ${sshSession.remoteCwd}\nAuth: unix socket → local proxy` : `SSH session to ${_pendingSSH.host}\nRemote cwd: ${sshSession.remoteCwd}\nAuth: unix socket -R → local proxy`, 'info');
+      startupProgressStderr('即将进入 REPL（SSH 会话）');
       await launchRepl(root, {
         getFpsMetrics,
         stats,
@@ -3341,6 +3428,7 @@ async function run(): Promise<CommanderCommand> {
         replBridgeEnabled: false
       };
       const remoteCommands = filterCommandsForRemoteMode(commands);
+      startupProgressStderr('即将进入 REPL（Assistant 查看器）');
       await launchRepl(root, {
         getFpsMetrics,
         stats,
@@ -3490,6 +3578,7 @@ async function run(): Promise<CommanderCommand> {
         // Pre-filter commands to only include remote-safe ones.
         // CCR's init response may further refine the list (via handleRemoteInit in REPL).
         const remoteCommands = filterCommandsForRemoteMode(commands);
+        startupProgressStderr('即将进入 REPL（--remote 远程会话）');
         await launchRepl(root, {
           getFpsMetrics,
           stats,
@@ -3736,6 +3825,7 @@ async function run(): Promise<CommanderCommand> {
       if (resumeData) {
         maybeActivateProactive(options);
         maybeActivateBrief(options);
+        startupProgressStderr('即将进入 REPL（--resume / teleport 等，已有会话数据）');
         await launchRepl(root, {
           getFpsMetrics,
           stats,
@@ -3752,6 +3842,7 @@ async function run(): Promise<CommanderCommand> {
       } else {
         // Show interactive selector (includes same-repo worktrees)
         // Note: ResumeConversation loads logs internally to ensure proper GC after selection
+        startupProgressStderr('即将打开恢复会话选择器（无直接会话数据）');
         await launchResumeChooser(root, {
           getFpsMetrics,
           stats,
@@ -3801,6 +3892,7 @@ async function run(): Promise<CommanderCommand> {
         }
       }
       const initialMessages = deepLinkBanner ? [deepLinkBanner, ...hookMessages] : hookMessages.length > 0 ? hookMessages : undefined;
+      startupProgressStderr('即将进入 REPL（默认新会话，调用 launchRepl）');
       await launchRepl(root, {
         getFpsMetrics,
         stats,

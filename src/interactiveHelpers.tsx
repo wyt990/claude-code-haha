@@ -1,5 +1,5 @@
 import { feature } from 'bun:bundle';
-import { appendFileSync } from 'fs';
+import { appendFileSync, writeSync } from 'fs';
 import React from 'react';
 import { logEvent } from 'src/services/analytics/index.js';
 import { gracefulShutdown, gracefulShutdownSync } from 'src/utils/gracefulShutdown.js';
@@ -8,6 +8,7 @@ import type { Command } from './commands.js';
 import { createStatsStore, type StatsStore } from './context/stats.js';
 import { getSystemContext } from './context.js';
 import { initializeTelemetryAfterTrust } from './entrypoints/init.js';
+import instances from './ink/instances.js';
 import { isSynchronizedOutputSupported } from './ink/terminal.js';
 import type { RenderOptions, Root, TextProps } from './ink.js';
 import { KeybindingSetup } from './keybindings/KeybindingProviderSetup.js';
@@ -19,7 +20,7 @@ import { AppStateProvider } from './state/AppState.js';
 import { onChangeAppState } from './state/onChangeAppState.js';
 import { normalizeApiKeyForConfig } from './utils/authPortable.js';
 import { getExternalClaudeMdIncludes, getMemoryFiles, shouldShowClaudeMdExternalIncludesWarning } from './utils/claudemd.js';
-import { checkHasTrustDialogAccepted, getCustomApiKeyStatus, getGlobalConfig, saveGlobalConfig } from './utils/config.js';
+import { checkHasTrustDialogAccepted, getCustomApiKeyStatus, getGlobalConfig, saveCurrentProjectConfig, saveGlobalConfig } from './utils/config.js';
 import { updateDeepLinkTerminalPreference } from './utils/deepLink/terminalPreference.js';
 import { isEnvTruthy, isRunningOnHomespace } from './utils/envUtils.js';
 import { type FpsMetrics, FpsTracker } from './utils/fpsTracker.js';
@@ -29,12 +30,72 @@ import type { PermissionMode } from './utils/permissions/PermissionMode.js';
 import { getBaseRenderOptions } from './utils/renderOptions.js';
 import { getSettingsWithAllErrors } from './utils/settings/allErrors.js';
 import { hasAutoModeOptIn, hasSkipDangerousModePermissionPrompt } from './utils/settings/settings.js';
+import { isFullscreenEnvEnabled } from './utils/fullscreen.js';
+import {
+  shouldEmitStartupProgressToStderr,
+  startupProgressStderr,
+} from './utils/startupProgressStderr.js';
 export function completeOnboarding(): void {
   saveGlobalConfig(current => ({
     ...current,
     hasCompletedOnboarding: true,
     lastOnboardingVersion: MACRO.VERSION
   }));
+}
+
+/** 与 applyInteractiveStartupBypassFromEnv 使用同一环境变量；跳过后续所有阻塞式 Ink 确认框。 */
+function skipBlockingStartupDialogsFromEnv(): boolean {
+  return isEnvTruthy(process.env.CLAUDE_CODE_SKIP_STARTUP_DIALOGS);
+}
+
+/**
+ * Ink 在部分流程中使用终端备用缓冲（DEC ?1049，仍是同一窗口）渲染引导与「信任工作区」；
+ * 滚动区里可能只剩 stderr 的几行提示，易被误认为卡死。external 构建下主 REPL 默认可能不包 AlternateScreen，
+ * 详见 isFullscreenEnvEnabled()。仅在**完全信任**的目录使用 SKIP。
+ *
+ * 同时：自动将当前 ANTHROPIC_API_KEY 记为已批准（等同 ApproveApiKey 选「是」），避免在看不见 TUI 时卡在密钥确认框。
+ */
+function applyInteractiveStartupBypassFromEnv(): void {
+  if (!skipBlockingStartupDialogsFromEnv()) {
+    return;
+  }
+  completeOnboarding();
+  setSessionTrustAccepted(true);
+  try {
+    saveCurrentProjectConfig(current => ({
+      ...current,
+      hasTrustDialogAccepted: true
+    }));
+  } catch {
+    /* ~/.claude.json 不可写等 */
+  }
+  if (process.env.ANTHROPIC_API_KEY && !isRunningOnHomespace()) {
+    const customApiKeyTruncated = normalizeApiKeyForConfig(
+      process.env.ANTHROPIC_API_KEY,
+    );
+    if (getCustomApiKeyStatus(customApiKeyTruncated) === 'new') {
+      saveGlobalConfig(current => ({
+        ...current,
+        customApiKeyResponses: {
+          ...current.customApiKeyResponses,
+          approved: [
+            ...(current.customApiKeyResponses?.approved ?? []),
+            customApiKeyTruncated,
+          ],
+        },
+      }));
+    }
+  }
+  if (shouldEmitStartupProgressToStderr()) {
+    try {
+      writeSync(
+        2,
+        'Claude Code：CLAUDE_CODE_SKIP_STARTUP_DIALOGS=1 已生效：已跳过引导/信任/MCP 与 CLAUDE.md 确认、Grove、API Key 与通道等阻塞对话框，并已静默接受当前环境变量中的 API Key（请勿用于不可信目录）。\n',
+      );
+    } catch {
+      /* ignore */
+    }
+  }
 }
 export function showDialog<T = void>(root: Root, renderer: (done: (result: T) => void) => React.ReactNode): Promise<T> {
   return new Promise<T>(resolve => {
@@ -96,8 +157,23 @@ export function showSetupDialog<T = void>(root: Root, renderer: (done: (result: 
  * Handles the common epilogue: start deferred prefetches, wait for exit, graceful shutdown.
  */
 export async function renderAndRun(root: Root, element: React.ReactNode): Promise<void> {
+  startupProgressStderr('renderAndRun：即将 root.render(主界面树)…');
   root.render(element);
+  // resetAfterCommit 仅通过 throttle→queueMicrotask 调度 onRender，首帧在部分环境下偏晚；补一次微任务触发首帧绘制
+  queueMicrotask(() => {
+    instances.get(process.stdout)?.onRender();
+  });
+  startupProgressStderr(
+    `renderAndRun：root.render 已返回。全屏=${String(isFullscreenEnvEnabled())}；Ink 为同步 flush，若全屏为 true，请向上翻阅 stderr 是否已有「Ink：本帧…」「AlternateScreen」行（应早于本行）。`,
+  );
+  await new Promise<void>(resolve => {
+    setImmediate(resolve);
+  });
+  startupProgressStderr(
+    'renderAndRun：setImmediate 已过（仅让出事件循环；进入备用屏不依赖此步）。',
+  );
   startDeferredPrefetches();
+  startupProgressStderr('renderAndRun：startDeferredPrefetches 已调用，进入 root.waitUntilExit()（进程将保持运行直至退出 TUI）');
   await root.waitUntilExit();
   await gracefulShutdown(0);
 }
@@ -106,6 +182,8 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
   ) {
     return false;
   }
+  applyInteractiveStartupBypassFromEnv();
+  const skipBlockingSetupUi = skipBlockingStartupDialogsFromEnv();
   const config = getGlobalConfig();
   let onboardingShown = false;
   if (!config.theme || !config.hasCompletedOnboarding // always show onboarding at least once
@@ -156,12 +234,15 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
     const {
       errors: allErrors
     } = getSettingsWithAllErrors();
-    if (allErrors.length === 0) {
+    if (!skipBlockingSetupUi && allErrors.length === 0) {
       await handleMcpjsonServerApprovals(root);
     }
 
     // Check for claude.md includes that need approval
-    if (await shouldShowClaudeMdExternalIncludesWarning()) {
+    if (
+      !skipBlockingSetupUi &&
+      (await shouldShowClaudeMdExternalIncludesWarning())
+    ) {
       const externalIncludes = getExternalClaudeMdIncludes(await getMemoryFiles(true));
       const {
         ClaudeMdExternalIncludesDialog
@@ -188,7 +269,7 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
   // Defer to next tick so the OTel dynamic import resolves after first render
   // instead of during the pre-render microtask queue.
   setImmediate(() => initializeTelemetryAfterTrust());
-  if (await isQualifiedForGrove()) {
+  if (!skipBlockingSetupUi && (await isQualifiedForGrove())) {
     const {
       GroveDialog
     } = await import('src/components/grove/Grove.js');
@@ -203,7 +284,11 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
   // Check for custom API key
   // On homespace, ANTHROPIC_API_KEY is preserved in process.env for child
   // processes but ignored by Claude Code itself (see auth.ts).
-  if (process.env.ANTHROPIC_API_KEY && !isRunningOnHomespace()) {
+  if (
+    !skipBlockingSetupUi &&
+    process.env.ANTHROPIC_API_KEY &&
+    !isRunningOnHomespace()
+  ) {
     const customApiKeyTruncated = normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY);
     const keyStatus = getCustomApiKeyStatus(customApiKeyTruncated);
     if (keyStatus === 'new') {
@@ -215,13 +300,17 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
       });
     }
   }
-  if ((permissionMode === 'bypassPermissions' || allowDangerouslySkipPermissions) && !hasSkipDangerousModePermissionPrompt()) {
+  if (
+    !skipBlockingSetupUi &&
+    (permissionMode === 'bypassPermissions' || allowDangerouslySkipPermissions) &&
+    !hasSkipDangerousModePermissionPrompt()
+  ) {
     const {
       BypassPermissionsModeDialog
     } = await import('./components/BypassPermissionsModeDialog.js');
     await showSetupDialog(root, done => <BypassPermissionsModeDialog onAccept={done} />);
   }
-  if (feature('TRANSCRIPT_CLASSIFIER')) {
+  if (feature('TRANSCRIPT_CLASSIFIER') && !skipBlockingSetupUi) {
     // Only show the opt-in dialog if auto mode actually resolved — if the
     // gate denied it (org not allowlisted, settings disabled), showing
     // consent for an unavailable feature is pointless. The
@@ -247,7 +336,10 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
     // true; only blocks on a cold/stale-false cache (awaits the same memoized
     // initializeGrowthBook promise fired earlier). Also warms the
     // isChannelsEnabled() check in the dev-channels dialog below.
-    if (getAllowedChannels().length > 0 || (devChannels?.length ?? 0) > 0) {
+    if (
+      !skipBlockingSetupUi &&
+      (getAllowedChannels().length > 0 || (devChannels?.length ?? 0) > 0)
+    ) {
       await checkGate_CACHED_OR_BLOCKING('tengu_harbor');
     }
     if (devChannels && devChannels.length > 0) {
@@ -269,7 +361,7 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
           dev: true
         }))]);
         setHasDevChannels(true);
-      } else {
+      } else if (!skipBlockingSetupUi) {
         const {
           DevChannelsDialog
         } = await import('./components/DevChannelsDialog.js');
@@ -283,12 +375,22 @@ export async function showSetupScreens(root: Root, permissionMode: PermissionMod
           setHasDevChannels(true);
           void done();
         }} />);
+      } else {
+        setAllowedChannels([...getAllowedChannels(), ...devChannels.map(c => ({
+          ...c,
+          dev: true
+        }))]);
+        setHasDevChannels(true);
       }
     }
   }
 
   // Show Chrome onboarding for first-time Claude in Chrome users
-  if (claudeInChrome && !getGlobalConfig().hasCompletedClaudeInChromeOnboarding) {
+  if (
+    !skipBlockingSetupUi &&
+    claudeInChrome &&
+    !getGlobalConfig().hasCompletedClaudeInChromeOnboarding
+  ) {
     const {
       ClaudeInChromeOnboarding
     } = await import('./components/ClaudeInChromeOnboarding.js');

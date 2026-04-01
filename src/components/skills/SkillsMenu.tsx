@@ -1,5 +1,4 @@
 import { c as _c } from "react/compiler-runtime";
-import capitalize from 'lodash-es/capitalize.js';
 import * as React from 'react';
 import { useMemo } from 'react';
 import { type Command, type CommandBase, type CommandResultDisplay, getCommandName, type PromptCommand } from '../../commands.js';
@@ -7,7 +6,7 @@ import { Box, Text } from '../../ink.js';
 import { estimateSkillFrontmatterTokens, getSkillsPath } from '../../skills/loadSkillsDir.js';
 import { getDisplayPath } from '../../utils/file.js';
 import { formatTokens } from '../../utils/format.js';
-import { getSettingSourceName, type SettingSource } from '../../utils/settings/constants.js';
+import { type SettingSource } from '../../utils/settings/constants.js';
 import { plural } from '../../utils/stringUtils.js';
 import { ConfigurableShortcutHint } from '../ConfigurableShortcutHint.js';
 import { Dialog } from '../design-system/Dialog.js';
@@ -23,12 +22,23 @@ type Props = {
 };
 function getSourceTitle(source: SkillSource): string {
   if (source === 'plugin') {
-    return 'Plugin skills';
+    return '插件 Skill';
   }
   if (source === 'mcp') {
-    return 'MCP skills';
+    return 'MCP Skill';
   }
-  return `${capitalize(getSettingSourceName(source))} skills`;
+  switch (source) {
+    case 'userSettings':
+      return '用户 Skill';
+    case 'projectSettings':
+      return '项目 Skill';
+    case 'localSettings':
+      return '本地 Skill（.gitignore）';
+    case 'flagSettings':
+      return 'CLI 参数 Skill';
+    case 'policySettings':
+      return '托管策略 Skill';
+  }
 }
 function getSourceSubtitle(source: SkillSource, skills: SkillCommand[]): string | undefined {
   // MCP skills show server names; file-based skills show filesystem paths.
@@ -88,7 +98,7 @@ export function SkillsMenu(t0) {
   let t2;
   if ($[4] !== onExit) {
     t2 = () => {
-      onExit("Skills dialog dismissed", {
+      onExit("已关闭 Skill 列表", {
         display: "system"
       });
     };
@@ -101,21 +111,21 @@ export function SkillsMenu(t0) {
   if (skills.length === 0) {
     let t3;
     if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
-      t3 = <Text dimColor={true}>Create skills in .claude/skills/ or ~/.claude/skills/</Text>;
+      t3 = <Text dimColor={true}>可在 .claude/skills/ 或 ~/.claude/skills/ 中创建 Skill</Text>;
       $[6] = t3;
     } else {
       t3 = $[6];
     }
     let t4;
     if ($[7] === Symbol.for("react.memo_cache_sentinel")) {
-      t4 = <Text dimColor={true} italic={true}><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="close" /></Text>;
+      t4 = <Text dimColor={true} italic={true}><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="关闭" /></Text>;
       $[7] = t4;
     } else {
       t4 = $[7];
     }
     let t5;
     if ($[8] !== handleCancel) {
-      t5 = <Dialog title="Skills" subtitle="No skills found" onCancel={handleCancel} hideInputGuide={true}>{t3}{t4}</Dialog>;
+      t5 = <Dialog title="Skill" subtitle="未找到 Skill" onCancel={handleCancel} hideInputGuide={true}>{t3}{t4}</Dialog>;
       $[8] = handleCancel;
       $[9] = t5;
     } else {
@@ -144,7 +154,7 @@ export function SkillsMenu(t0) {
   const t4 = skills.length;
   let t5;
   if ($[12] !== skills.length) {
-    t5 = plural(skills.length, "skill");
+    t5 = plural(skills.length, "项 Skill", "项 Skill");
     $[12] = skills.length;
     $[13] = t5;
   } else {
@@ -205,14 +215,14 @@ export function SkillsMenu(t0) {
   }
   let t13;
   if ($[30] === Symbol.for("react.memo_cache_sentinel")) {
-    t13 = <Text dimColor={true} italic={true}><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="close" /></Text>;
+    t13 = <Text dimColor={true} italic={true}><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="关闭" /></Text>;
     $[30] = t13;
   } else {
     t13 = $[30];
   }
   let t14;
   if ($[31] !== handleCancel || $[32] !== t12 || $[33] !== t6) {
-    t14 = <Dialog title="Skills" subtitle={t6} onCancel={handleCancel} hideInputGuide={true}>{t12}{t13}</Dialog>;
+    t14 = <Dialog title="Skill" subtitle={t6} onCancel={handleCancel} hideInputGuide={true}>{t12}{t13}</Dialog>;
     $[31] = handleCancel;
     $[32] = t12;
     $[33] = t6;
@@ -226,7 +236,7 @@ function _temp3(skill_0) {
   const estimatedTokens = estimateSkillFrontmatterTokens(skill_0);
   const tokenDisplay = `~${formatTokens(estimatedTokens)}`;
   const pluginName = skill_0.source === "plugin" ? skill_0.pluginInfo?.pluginManifest.name : undefined;
-  return <Box key={`${skill_0.name}-${skill_0.source}`}><Text>{getCommandName(skill_0)}</Text><Text dimColor={true}>{pluginName ? ` · ${pluginName}` : ""} · {tokenDisplay} description tokens</Text></Box>;
+  return <Box key={`${skill_0.name}-${skill_0.source}`}><Text>{getCommandName(skill_0)}</Text><Text dimColor={true}>{pluginName ? ` · ${pluginName}` : ""} · {tokenDisplay} 描述 token</Text></Box>;
 }
 function _temp2(a, b) {
   return getCommandName(a).localeCompare(getCommandName(b));

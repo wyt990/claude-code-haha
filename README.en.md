@@ -1,4 +1,4 @@
-# Claude Code Haha
+# Claude Code
 
 <p align="right"><a href="./README.md">中文</a> | <strong>English</strong></p>
 
@@ -132,23 +132,23 @@ See **`.env.example`** and **[docs/OpenAI兼容API接入方案.md](./docs/OpenAI
 
 ```bash
 # Interactive TUI mode (full interface)
-./bin/claude-haha
+./bin/claudecode
 
 # Headless mode (single prompt)
-./bin/claude-haha -p "your prompt here"
+./bin/claudecode -p "your prompt here"
 
 # Pipe input
-echo "explain this code" | ./bin/claude-haha -p
+echo "explain this code" | ./bin/claudecode -p
 
 # Show all options
-./bin/claude-haha --help
+./bin/claudecode --help
 ```
 
 #### Windows
 
 > **Prerequisite**: [Git for Windows](https://git-scm.com/download/win) must be installed (provides Git Bash, which the project's internal shell execution depends on).
 
-The startup script `bin/claude-haha` is a bash script and cannot run directly in cmd or PowerShell. Use one of the following methods:
+The startup script `bin/claudecode` is a bash script and cannot run directly in cmd or PowerShell. Use one of the following methods:
 
 **Option 1: PowerShell / cmd — call Bun directly (recommended)**
 
@@ -167,7 +167,7 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 
 ```bash
 # Same usage as macOS / Linux
-./bin/claude-haha
+./bin/claudecode
 ```
 
 > **Note**: Some features (voice input, Computer Use, sandbox isolation, etc.) are not available on Windows. This does not affect the core TUI interaction.
@@ -200,7 +200,7 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 If the full TUI has issues, use the simplified readline-based interaction mode:
 
 ```bash
-CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claude-haha
+CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claudecode
 ```
 
 ---
@@ -223,7 +223,7 @@ The leaked source could not run directly. This repository mainly fixes the follo
 ## Project Structure
 
 ```text
-bin/claude-haha          # Entry script
+bin/claudecode          # Entry script
 preload.ts               # Bun preload (sets MACRO globals)
 .env.example             # Environment variable template
 docs/                    # Docs (incl. OpenAI compatibility guide)

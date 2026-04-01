@@ -225,7 +225,11 @@ export function CompanionSprite(): React.ReactNode {
   // Narrow terminals: collapse to one-line face. When speaking, the quip
   // replaces the name beside the face (no room for a bubble).
   if (columns < MIN_COLS_FOR_FULL_SPRITE) {
-    const quip = reaction && reaction.length > NARROW_QUIP_CAP ? reaction.slice(0, NARROW_QUIP_CAP - 1) + '…' : reaction;
+    const reactionText = typeof reaction === 'string' ? reaction : '';
+    const quip =
+      reactionText.length > NARROW_QUIP_CAP
+        ? reactionText.slice(0, NARROW_QUIP_CAP - 1) + '…'
+        : reactionText || undefined;
     const label = quip ? `"${quip}"` : focused ? ` ${companion.name} ` : companion.name;
     return <Box paddingX={1} alignSelf="flex-end">
         <Text>
