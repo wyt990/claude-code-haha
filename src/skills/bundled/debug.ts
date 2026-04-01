@@ -14,8 +14,8 @@ export function registerDebugSkill(): void {
     name: 'debug',
     description:
       process.env.USER_TYPE === 'ant'
-        ? 'Debug your current Claude Code session by reading the session debug log. Includes all event logging'
-        : 'Enable debug logging for this session and help diagnose issues',
+        ? '通过阅读会话调试日志来调试当前 Claude Code 会话。包括所有事件日志'
+        : '启用调试日志并帮助诊断问题',
     allowedTools: ['Read', 'Grep', 'Glob'],
     argumentHint: '[issue description]',
     // disableModelInvocation so that the user has to explicitly request it in
@@ -52,18 +52,18 @@ export function registerDebugSkill(): void {
         }
       } catch (e) {
         logInfo = isENOENT(e)
-          ? 'No debug log exists yet — logging was just enabled.'
-          : `Failed to read last ${DEFAULT_DEBUG_LINES_READ} lines of debug log: ${errorMessage(e)}`
+          ? '没有调试日志存在 — 日志刚刚启用。'
+          : `读取最后 ${DEFAULT_DEBUG_LINES_READ} 行调试日志失败: ${errorMessage(e)}`
       }
 
       const justEnabledSection = wasAlreadyLogging
         ? ''
         : `
-## Debug Logging Just Enabled
+## 刚刚启用了调试日志
 
-Debug logging was OFF for this session until now. Nothing prior to this /debug invocation was captured.
+调试日志在当前会话中处于关闭状态，直到现在。在此之前没有任何调用被捕获。
 
-Tell the user that debug logging is now active at \`${debugLogPath}\`, ask them to reproduce the issue, then re-read the log. If they can't reproduce, they can also restart with \`claude --debug\` to capture logs from startup.
+告诉用户调试日志现在处于活动状态 at \`${debugLogPath}\`, 要求他们重现问题，然后重新读取日志。如果他们不能重现，他们也可以重新启动 \`claude --debug\` 来捕获启动时的日志。
 `
 
       const prompt = `# Debug Skill

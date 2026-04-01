@@ -16,7 +16,7 @@ type Props = {
  * separators between valid elements.
  *
  * @example
- * // Basic usage: "Enter to confirm · Esc to cancel"
+ * // Basic usage: "按 Enter 键确认 · Esc 键取消"
  * <Text dimColor>
  *   <Byline>
  *     <KeyboardShortcutHint shortcut="Enter" action="confirm" />
@@ -25,7 +25,7 @@ type Props = {
  * </Text>
  *
  * @example
- * // With conditional children: "Esc to cancel" (only one item shown)
+ * // With conditional children: "按 Es c 键取消" (仅显示一个项目)
  * <Text dimColor>
  *   <Byline>
  *     {showEnter && <KeyboardShortcutHint shortcut="Enter" action="confirm" />}

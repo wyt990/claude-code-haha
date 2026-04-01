@@ -369,7 +369,7 @@ export function QuestionView(t0) {
   }
   let t19;
   if ($[86] !== footerIndex || $[87] !== isFooterFocused || $[88] !== isInPlanMode || $[89] !== options.length) {
-    t19 = isInPlanMode && <Box flexDirection="row" gap={1}>{isFooterFocused && footerIndex === 1 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}<Text color={isFooterFocused && footerIndex === 1 ? "suggestion" : undefined}>{options.length + 2}. Skip interview and plan immediately</Text></Box>;
+    t19 = isInPlanMode && <Box flexDirection="row" gap={1}>{isFooterFocused && footerIndex === 1 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}<Text color={isFooterFocused && footerIndex === 1 ? "suggestion" : undefined}>{options.length + 2}. 跳过面试并立即计划</Text></Box>;
     $[86] = footerIndex;
     $[87] = isFooterFocused;
     $[88] = isInPlanMode;
@@ -389,7 +389,7 @@ export function QuestionView(t0) {
   }
   let t21;
   if ($[94] !== questions.length) {
-    t21 = questions.length === 1 ? <>{figures.arrowUp}/{figures.arrowDown} to navigate</> : "Tab/Arrow keys to navigate";
+    t21 = questions.length === 1 ? <>{figures.arrowUp}/{figures.arrowDown} 导航</> : "Tab/Arrow 键导航";
     $[94] = questions.length;
     $[95] = t21;
   } else {
@@ -397,7 +397,7 @@ export function QuestionView(t0) {
   }
   let t22;
   if ($[96] !== isOtherFocused) {
-    t22 = isOtherFocused && editorName && <> · ctrl+g to edit in {editorName}</>;
+    t22 = isOtherFocused && editorName && <> · ctrl+g 在 {editorName} 编辑</>;
     $[96] = isOtherFocused;
     $[97] = t22;
   } else {
@@ -405,7 +405,7 @@ export function QuestionView(t0) {
   }
   let t23;
   if ($[98] !== t21 || $[99] !== t22) {
-    t23 = <Box marginTop={1}><Text color="inactive" dimColor={true}>Enter to select ·{" "}{t21}{t22}{" "}· Esc to cancel</Text></Box>;
+    t23 = <Box marginTop={1}><Text color="inactive" dimColor={true}>按 Enter 键选择 ·{" "}{t21}{t22}{" "}· Esc 键取消</Text></Box>;
     $[98] = t21;
     $[99] = t22;
     $[100] = t23;

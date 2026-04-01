@@ -135,7 +135,7 @@ function RuleDetails(t0) {
   const ruleDescription = t6;
   let t7;
   if ($[13] !== exitState.keyName || $[14] !== exitState.pending) {
-    t7 = <Box marginLeft={3}>{exitState.pending ? <Text dimColor={true}>Press {exitState.keyName} again to exit</Text> : <Text dimColor={true}>Esc to cancel</Text>}</Box>;
+    t7 = <Box marginLeft={3}>{exitState.pending ? <Text dimColor={true}>再按一次 {exitState.keyName} 退出</Text> : <Text dimColor={true}>按 Esc 键取消</Text>}</Box>;
     $[13] = exitState.keyName;
     $[14] = exitState.pending;
     $[15] = t7;
@@ -146,14 +146,14 @@ function RuleDetails(t0) {
   if (rule.source === "policySettings") {
     let t8;
     if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-      t8 = <Text bold={true} color="permission">Rule details</Text>;
+      t8 = <Text bold={true} color="permission">规则详情</Text>;
       $[16] = t8;
     } else {
       t8 = $[16];
     }
     let t9;
     if ($[17] === Symbol.for("react.memo_cache_sentinel")) {
-      t9 = <Text italic={true}>This rule is configured by managed settings and cannot be modified.{"\n"}Contact your system administrator for more information.</Text>;
+      t9 = <Text italic={true}>此规则由管理设置配置，无法修改。{"\n"}请联系系统管理员获取更多信息。</Text>;
       $[17] = t9;
     } else {
       t9 = $[17];
@@ -195,7 +195,7 @@ function RuleDetails(t0) {
   }
   let t10;
   if ($[27] === Symbol.for("react.memo_cache_sentinel")) {
-    t10 = <Text>Are you sure you want to delete this permission rule?</Text>;
+    t10 = <Text>你确定要删除这个权限规则吗？</Text>;
     $[27] = t10;
   } else {
     t10 = $[27];

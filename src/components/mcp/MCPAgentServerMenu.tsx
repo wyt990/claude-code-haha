@@ -40,7 +40,7 @@ export function MCPAgentServerMenu({
   // parent component's Esc handler navigates away before ours fires.
   useEffect(() => () => authAbortControllerRef.current?.abort(), []);
 
-  // Handle ESC to cancel authentication flow
+  // Handle Esc 键取消认证流程
   const handleEscCancel = useCallback(() => {
     if (isAuthenticating) {
       authAbortControllerRef.current?.abort();

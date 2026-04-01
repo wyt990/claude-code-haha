@@ -31,7 +31,6 @@ import {
   type PromptInputMode,
 } from '../../types/textInputTypes.js'
 import {
-  type AgentMentionAttachment,
   createAttachmentMessage,
   getAttachmentMessages,
 } from '../attachments.js'
@@ -555,8 +554,8 @@ async function processUserInputBase(
     const trimmedInput = inputString.trim()
 
     const agentMention = attachmentMessages.find(
-      (m): m is AttachmentMessage<AgentMentionAttachment> =>
-        m.attachment.type === 'agent_mention',
+      (m): m is AttachmentMessage =>
+        m.attachment?.type === 'agent_mention',
     )
 
     if (agentMention) {

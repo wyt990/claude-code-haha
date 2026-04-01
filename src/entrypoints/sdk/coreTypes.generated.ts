@@ -10,7 +10,8 @@ export type SDKUserMessageReplay = Record<string, any>
 export type SDKResultMessage = Record<string, any>
 export type SDKSessionInfo = Record<string, any>
 export type SDKAssistantMessage = Record<string, any>
-export type SDKAssistantMessageError = Record<string, any>
+/** SDK / UI use string error codes (e.g. rate_limit); stub matches runtime, not object-only schema. */
+export type SDKAssistantMessageError = string
 export type SDKCompactBoundaryMessage = Record<string, any>
 export type SDKPermissionDenial = Record<string, any>
 export type SDKStatus = Record<string, any>

@@ -87,7 +87,7 @@ export function PermissionRuleInput(t0) {
   }
   let t7;
   if ($[9] === Symbol.for("react.memo_cache_sentinel")) {
-    t7 = <Text>Permission rules are a tool name, optionally followed by a specifier in parentheses.{t4}e.g.,{" "}{t5}{t6}<Text bold={true}>{permissionRuleValueToString({
+    t7 = <Text>权限规则是一个工具名称，可选地后跟括号中的规范符。{t4}例如：{" "}{t5}{t6}<Text bold={true}>{permissionRuleValueToString({
           toolName: BashTool.name,
           ruleContent: "ls:*"
         })}</Text></Text>;
@@ -117,7 +117,7 @@ export function PermissionRuleInput(t0) {
   }
   let t10;
   if ($[18] !== exitState.keyName || $[19] !== exitState.pending) {
-    t10 = <Box marginLeft={3}>{exitState.pending ? <Text dimColor={true}>Press {exitState.keyName} again to exit</Text> : <Text dimColor={true}>Enter to submit · Esc to cancel</Text>}</Box>;
+    t10 = <Box marginLeft={3}>{exitState.pending ? <Text dimColor={true}>再按一次 {exitState.keyName} 退出</Text> : <Text dimColor={true}>按 Enter 键提交 · Esc 键取消</Text>}</Box>;
     $[18] = exitState.keyName;
     $[19] = exitState.pending;
     $[20] = t10;

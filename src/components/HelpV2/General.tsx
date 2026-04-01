@@ -6,7 +6,7 @@ export function General() {
   const $ = _c(2);
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-    t0 = <Box><Text>Claude understands your codebase, makes edits with your permission, and executes commands — right from your terminal.</Text></Box>;
+    t0 = <Box><Text>Claude 理解你的代码库，在获得你的许可后进行编辑，并从你的终端执行命令。</Text></Box>;
     $[0] = t0;
   } else {
     t0 = $[0];

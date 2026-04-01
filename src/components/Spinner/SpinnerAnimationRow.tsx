@@ -66,6 +66,9 @@ export type SpinnerAnimationRowProps = {
   // Thinking (state owned by parent, mode-dependent)
   thinkingStatus: 'thinking' | number | null;
   effortSuffix: string;
+
+  /** Ant-only: first-token latency, folded into the parenthesized status Byline */
+  ttftText?: string | null;
 };
 
 /**
@@ -98,7 +101,8 @@ export function SpinnerAnimationRow({
   foregroundedTeammate,
   leaderIsIdle = false,
   thinkingStatus,
-  effortSuffix
+  effortSuffix,
+  ttftText = null,
 }: SpinnerAnimationRowProps): React.ReactNode {
   const [viewportRef, time] = useAnimationFrame(reducedMotion ? null : 50);
 
@@ -178,6 +182,8 @@ export function SpinnerAnimationRow({
   const wantsThinking = thinkingStatus !== null;
   const wantsTimerAndTokens = verbose || hasRunningTeammates || effectiveElapsedMs > SHOW_TOKENS_AFTER_MS;
   const availableSpace = columns - messageWidth - 5;
+  const wantsTtft = Boolean(ttftText);
+  const ttftWidth = ttftText ? stringWidth(ttftText) : 0;
   let showThinking = wantsThinking && availableSpace > thinkingWidthValue;
   if (!showThinking && wantsThinking && thinkingStatus === 'thinking' && effortSuffix) {
     if (availableSpace > THINKING_BARE_WIDTH) {
@@ -187,10 +193,21 @@ export function SpinnerAnimationRow({
     }
   }
   const usedAfterThinking = showThinking ? thinkingWidthValue + sep : 0;
-  const showTimer = wantsTimerAndTokens && availableSpace > usedAfterThinking + timerWidth;
-  const usedAfterTimer = usedAfterThinking + (showTimer ? timerWidth + sep : 0);
+  const showTtft =
+    wantsTtft && availableSpace > usedAfterThinking + ttftWidth;
+  const usedAfterTtft =
+    usedAfterThinking + (showTtft ? ttftWidth + sep : 0);
+  const showTimer =
+    wantsTimerAndTokens && availableSpace > usedAfterTtft + timerWidth;
+  const usedAfterTimer = usedAfterTtft + (showTimer ? timerWidth + sep : 0);
   const showTokens = wantsTimerAndTokens && totalTokens > 0 && availableSpace > usedAfterTimer + tokensWidth;
-  const thinkingOnly = showThinking && thinkingStatus === 'thinking' && !spinnerSuffix && !showTimer && !showTokens && true;
+  const thinkingOnly =
+    showThinking &&
+    thinkingStatus === 'thinking' &&
+    !spinnerSuffix &&
+    !showTtft &&
+    !showTimer &&
+    !showTokens;
 
   // === Thinking shimmer color (formerly ThinkingShimmerText's own timer) ===
   // Same sine-wave opacity, but derived from our shared `time` instead of a
@@ -202,6 +219,8 @@ export function SpinnerAnimationRow({
   // === Build status parts ===
   const parts = [...(spinnerSuffix ? [<Text dimColor key="suffix">
             {spinnerSuffix}
+          </Text>] : []), ...(showTtft && ttftText ? [<Text dimColor key="ttft">
+            {ttftText}
           </Text>] : []), ...(showTimer ? [<Text dimColor key="elapsedTime">
             {timerText}
           </Text>] : []), ...(showTokens ? [<Box flexDirection="row" key="tokens">

@@ -27,7 +27,27 @@ export type SystemAgentsKilledMessage = any
 export type SystemApiMetricsMessage = any
 export type SystemAwaySummaryMessage = any
 export type SystemBridgeStatusMessage = any
-export type SystemCompactBoundaryMessage = any
+/**
+ * Narrow enough that `isCompactBoundaryMessage`’s false branch is not `never`,
+ * but loose enough for stubbed message shapes (compact metadata, etc.).
+ */
+export type SystemCompactBoundaryMessage = {
+  type: 'system'
+  subtype: 'compact_boundary'
+  content?: unknown
+  isMeta?: boolean
+  timestamp?: string
+  uuid?: string
+  level?: unknown
+  compactMetadata?: {
+    trigger?: unknown
+    preTokens?: number
+    userContext?: unknown
+    messagesSummarized?: number
+    preservedSegment?: unknown
+  }
+  logicalParentUuid?: string
+}
 export type SystemFileSnapshotMessage = any
 export type SystemInformationalMessage = any
 export type SystemLocalCommandMessage = any

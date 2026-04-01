@@ -205,7 +205,7 @@ export function computeEditsFromContents(
  * 1. Tab is closed in IDE
  * 2. Tab is saved in IDE (we then close the tab)
  * 3. User selected an option in IDE
- * 4. User selected an option in terminal (or hit esc)
+ * 4. User selected an option in terminal (or hit Esc 键)
  *
  * Resolves with the new file content.
  *
@@ -250,7 +250,7 @@ async function showDiffInIDE(
     toolUseContext.abortController.signal.removeEventListener('abort', cleanup)
   }
 
-  // Cleanup if the user hits esc to cancel the tool call - or on exit
+  // Cleanup if the user hits Esc 键取消工具调用 - 或退出
   toolUseContext.abortController.signal.addEventListener('abort', cleanup)
   process.on('beforeExit', cleanup)
 

@@ -72,7 +72,7 @@ function createAllTimeStatsPromise(): Promise<StatsResult> {
       data
     };
   }).catch((err): StatsResult => {
-    const message = err instanceof Error ? err.message : 'Failed to load stats';
+    const message = err instanceof Error ? err.message : '加载统计数据失败';
     return {
       type: 'error',
       message
@@ -94,7 +94,7 @@ export function Stats(t0) {
   const allTimePromise = t1;
   let t2;
   if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
-    t2 = <Box marginTop={1}><Spinner /><Text> Loading your Claude Code stats…</Text></Box>;
+    t2 = <Box marginTop={1}><Spinner /><Text> 加载你的 Claude Code 统计数据…</Text></Box>;
     $[1] = t2;
   } else {
     t2 = $[1];
@@ -242,7 +242,7 @@ function StatsContent(t0) {
   if (allTimeResult.type === "empty") {
     let t7;
     if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
-      t7 = <Box marginTop={1}><Text color="warning">No stats available yet. Start using Claude Code!</Text></Box>;
+      t7 = <Box marginTop={1}><Text color="warning">暂无统计数据。开始使用 Claude Code！</Text></Box>;
       $[15] = t7;
     } else {
       t7 = $[15];
@@ -252,7 +252,7 @@ function StatsContent(t0) {
   if (!displayStats || !allTimeStats) {
     let t7;
     if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-      t7 = <Box marginTop={1}><Spinner /><Text> Loading stats…</Text></Box>;
+      t7 = <Box marginTop={1}><Spinner /><Text> 加载统计数据…</Text></Box>;
       $[16] = t7;
     } else {
       t7 = $[16];
@@ -292,7 +292,7 @@ function StatsContent(t0) {
   const t10 = copyStatus ? ` · ${copyStatus}` : "";
   let t11;
   if ($[29] !== t10) {
-    t11 = <Box paddingLeft={2}><Text dimColor={true}>Esc to cancel · r to cycle dates · ctrl+s to copy{t10}</Text></Box>;
+    t11 = <Box paddingLeft={2}><Text dimColor={true}>按 Esc 键取消 · r 键切换日期 · ctrl+s 键复制{t10}</Text></Box>;
     $[29] = t10;
     $[30] = t11;
   } else {

@@ -296,7 +296,7 @@ export function Feedback({
     }
 
     // When in userInput step with error, allow user to edit and retry
-    // (don't close on any keypress - they can still press Esc to cancel)
+    // (don't close on any keypress - they can still press Esc 键取消)
     if (error && step !== 'userInput') {
       onDone('Error submitting feedback / bug report', {
         display: 'system'
@@ -328,26 +328,26 @@ export function Feedback({
           {error && <Box flexDirection="column" gap={1}>
               <Text color="error">{error}</Text>
               <Text dimColor>
-                Edit and press Enter to retry, or Esc to cancel
+                编辑并按 Enter 键重试，或按 Esc 键取消
               </Text>
             </Box>}
         </Box>}
 
       {step === 'consent' && <Box flexDirection="column">
-          <Text>This report will include:</Text>
+          <Text>报告将包括：</Text>
           <Box marginLeft={2} flexDirection="column">
             <Text>
-              - Your feedback / bug description:{' '}
+              - 你的反馈 / 错误描述：{' '}
               <Text dimColor>{description}</Text>
             </Text>
             <Text>
-              - Environment info:{' '}
+              - 环境信息：{' '}
               <Text dimColor>
                 {env.platform}, {env.terminal}, v{MACRO.VERSION}
               </Text>
             </Text>
             {envInfo.gitState && <Text>
-                - Git repo metadata:{' '}
+                - Git 仓库元数据：{' '}
                 <Text dimColor>
                   {envInfo.gitState.branchName}
                   {envInfo.gitState.commitHash ? `, ${envInfo.gitState.commitHash.slice(0, 7)}` : ''}
@@ -356,35 +356,33 @@ export function Feedback({
                   {!envInfo.gitState.isClean && ', has local changes'}
                 </Text>
               </Text>}
-            <Text>- Current session transcript</Text>
+            <Text>- 当前会话记录</Text>
           </Box>
           <Box marginTop={1}>
             <Text wrap="wrap" dimColor>
-              We will use your feedback to debug related issues or to improve{' '}
-              Claude Code&apos;s functionality (eg. to reduce the risk of bugs
-              occurring in the future).
+              我们将使用你的反馈来调试相关问题或改进{' '}
+              Claude Code 的功能（例如减少未来出现错误的风险）。
             </Text>
           </Box>
           <Box marginTop={1}>
             <Text>
-              Press <Text bold>Enter</Text> to confirm and submit.
+              按 <Text bold>Enter</Text> 键确认并提交。
             </Text>
           </Box>
         </Box>}
 
       {step === 'submitting' && <Box flexDirection="row" gap={1}>
-          <Text>Submitting report…</Text>
+          <Text>提交报告…</Text>
         </Box>}
 
       {step === 'done' && <Box flexDirection="column">
-          {error ? <Text color="error">{error}</Text> : <Text color="success">Thank you for your report!</Text>}
+          {error ? <Text color="error">{error}</Text> : <Text color="success">感谢你的报告！</Text>}
           {feedbackId && <Text dimColor>Feedback ID: {feedbackId}</Text>}
           <Box marginTop={1}>
-            <Text>Press </Text>
+            <Text>按 </Text>
             <Text bold>Enter </Text>
             <Text>
-              to open your browser and draft a GitHub issue, or any other key to
-              close.
+              键打开浏览器并草拟 GitHub 问题，或按任意其他键关闭。
             </Text>
           </Box>
         </Box>}

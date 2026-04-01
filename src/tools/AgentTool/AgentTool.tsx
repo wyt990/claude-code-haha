@@ -692,7 +692,7 @@ export const AgentTool = buildTool({
         selectedAgent,
         setAppState: rootSetAppState,
         // Don't link to parent's abort controller -- background agents should
-        // survive when the user presses ESC to cancel the main thread.
+        // survive when the user presses Esc 键取消主线程。
         // They are killed explicitly via chat:killAgents.
         toolUseId: toolUseContext.toolUseId
       });

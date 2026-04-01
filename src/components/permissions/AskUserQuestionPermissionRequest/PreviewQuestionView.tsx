@@ -308,7 +308,7 @@ export function PreviewQuestionView({
             {isInPlanMode && <Box flexDirection="row" gap={1}>
                 {isFooterFocused && footerIndex === 1 ? <Text color="suggestion">{figures.pointer}</Text> : <Text> </Text>}
                 <Text color={isFooterFocused && footerIndex === 1 ? 'suggestion' : undefined}>
-                  Skip interview and plan immediately
+                  跳过面试并立即计划
                 </Text>
               </Box>}
           </Box>

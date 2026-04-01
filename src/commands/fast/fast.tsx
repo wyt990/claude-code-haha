@@ -164,7 +164,7 @@ export function FastModePicker(t0) {
   useKeybindings(t6, t7);
   let t8;
   if ($[19] === Symbol.for("react.memo_cache_sentinel")) {
-    t8 = <Text><FastIcon cooldown={isCooldown} /> Fast mode (research preview)</Text>;
+    t8 = <Text><FastIcon cooldown={isCooldown} /> 快速模式（研究预览）</Text>;
     $[19] = t8;
   } else {
     t8 = $[19];
@@ -172,7 +172,7 @@ export function FastModePicker(t0) {
   const title = t8;
   let t9;
   if ($[20] !== isUnavailable) {
-    t9 = exitState => exitState.pending ? <Text>Press {exitState.keyName} again to exit</Text> : isUnavailable ? <Text>Esc to cancel</Text> : <Text>Tab to toggle · Enter to confirm · Esc to cancel</Text>;
+    t9 = exitState => exitState.pending ? <Text>再按一次 {exitState.keyName} 退出</Text> : isUnavailable ? <Text>Esc 键退出</Text> : <Text>Tab 键切换 · Enter 键确认 · Esc 键取消</Text>;
     $[20] = isUnavailable;
     $[21] = t9;
   } else {
@@ -180,7 +180,7 @@ export function FastModePicker(t0) {
   }
   let t10;
   if ($[22] !== enableFastMode || $[23] !== unavailableReason) {
-    t10 = unavailableReason ? <Box marginLeft={2}><Text color="error">{unavailableReason}</Text></Box> : <><Box flexDirection="column" gap={0} marginLeft={2}><Box flexDirection="row" gap={2}><Text bold={true}>Fast mode</Text><Text color={enableFastMode ? "fastMode" : undefined} bold={enableFastMode}>{enableFastMode ? "ON " : "OFF"}</Text><Text dimColor={true}>{pricing}</Text></Box></Box>{isCooldown && runtimeState.status === "cooldown" && <Box marginLeft={2}><Text color="warning">{runtimeState.reason === "overloaded" ? "Fast mode overloaded and is temporarily unavailable" : "You've hit your fast limit"}{" \xB7 resets in "}{formatDuration(runtimeState.resetAt - Date.now(), {
+    t10 = unavailableReason ? <Box marginLeft={2}><Text color="error">{unavailableReason}</Text></Box> : <><Box flexDirection="column" gap={0} marginLeft={2}><Box flexDirection="row" gap={2}><Text bold={true}>Fast mode</Text><Text color={enableFastMode ? "fastMode" : undefined} bold={enableFastMode}>{enableFastMode ? "ON " : "OFF"}</Text><Text dimColor={true}>{pricing}</Text></Box></Box>{isCooldown && runtimeState.status === "cooldown" && <Box marginLeft={2}><Text color="warning">{runtimeState.reason === "overloaded" ? "快速模式过载且暂时不可用" : "你已达到快速模式限制"}{" \xB7 重置时间 "}{formatDuration(runtimeState.resetAt - Date.now(), {
             hideTrailingZeros: true
           })}</Text></Box>}</>;
     $[22] = enableFastMode;

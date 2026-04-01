@@ -1,6 +1,6 @@
 export type Tip = {
   id: string
-  content: () => Promise<string> | string
+  content: (context?: TipContext) => Promise<string> | string
   cooldownSessions?: number
   isRelevant?: (context?: TipContext) => boolean | Promise<boolean>
 }
