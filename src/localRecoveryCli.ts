@@ -1,6 +1,12 @@
 import Anthropic from '@anthropic-ai/sdk'
+import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { readFileSync } from 'fs'
 import { createInterface } from 'readline'
+import { isOpenAICompatApiMode } from './services/api/openaiCompat/config.js'
+import {
+  betaMessageAssistantText,
+  openAICompatNonStreamingRequest,
+} from './services/api/openaiCompat/openaiNonStreaming.js'
 
 type OutputFormat = 'text' | 'json'
 
@@ -27,6 +33,7 @@ function printHelp(): void {
       '  ANTHROPIC_BASE_URL',
       '  ANTHROPIC_MODEL',
       '  API_TIMEOUT_MS',
+      '  CLAUDE_CODE_USE_OPENAI_COMPAT_API  OpenAI Chat Completions 路径',
       '',
     ].join('\n'),
   )
@@ -169,6 +176,31 @@ async function run(): Promise<void> {
     return
   }
 
+  const system = getSystemPrompt(parsed.systemPrompt, parsed.appendSystemPrompt)
+  const streamParams: BetaMessageStreamParams = {
+    model,
+    max_tokens: 4096,
+    messages: [{ role: 'user', content: prompt }],
+    ...(system !== undefined ? { system } : {}),
+  }
+
+  if (isOpenAICompatApiMode()) {
+    const ms = parseInt(process.env.API_TIMEOUT_MS || String(600_000), 10)
+    const ac = new AbortController()
+    const tid = setTimeout(() => ac.abort(), ms)
+    try {
+      const msg = await openAICompatNonStreamingRequest(streamParams, ac.signal)
+      if (parsed.outputFormat === 'json') {
+        process.stdout.write(`${JSON.stringify(msg, null, 2)}\n`)
+        return
+      }
+      process.stdout.write(`${betaMessageAssistantText(msg)}\n`)
+    } finally {
+      clearTimeout(tid)
+    }
+    return
+  }
+
   const client = new Anthropic({
     apiKey: apiKey ?? undefined,
     authToken: authToken ?? undefined,
@@ -223,16 +255,21 @@ async function runInteractive(parsed: {
     return
   }
 
-  const client = new Anthropic({
-    apiKey: apiKey ?? undefined,
-    authToken: authToken ?? undefined,
-    baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
-    timeout: parseInt(process.env.API_TIMEOUT_MS || String(600_000), 10),
-    maxRetries: 0,
-  })
-
   const system = getSystemPrompt(parsed.systemPrompt, parsed.appendSystemPrompt)
   const messages: Array<{ role: 'user' | 'assistant'; content: string }> = []
+  const recoveryTimeoutMs = parseInt(
+    process.env.API_TIMEOUT_MS || String(600_000),
+    10,
+  )
+  const anthropicClient: Anthropic | null = isOpenAICompatApiMode()
+    ? null
+    : new Anthropic({
+        apiKey: apiKey ?? undefined,
+        authToken: authToken ?? undefined,
+        baseURL: process.env.ANTHROPIC_BASE_URL || undefined,
+        timeout: recoveryTimeoutMs,
+        maxRetries: 0,
+      })
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -263,16 +300,38 @@ async function runInteractive(parsed: {
 
     messages.push({ role: 'user', content: input })
     try {
-      const response = await client.messages.create({
+      const streamParams: BetaMessageStreamParams = {
         model,
         max_tokens: 4096,
         system,
         messages,
-      })
-      const text = response.content
-        .filter(block => block.type === 'text')
-        .map(block => block.text)
-        .join('\n')
+      }
+
+      let text: string
+      if (isOpenAICompatApiMode()) {
+        const ac = new AbortController()
+        const tid = setTimeout(() => ac.abort(), recoveryTimeoutMs)
+        try {
+          const msg = await openAICompatNonStreamingRequest(
+            streamParams,
+            ac.signal,
+          )
+          text = betaMessageAssistantText(msg)
+        } finally {
+          clearTimeout(tid)
+        }
+      } else {
+        const response = await anthropicClient!.messages.create({
+          model,
+          max_tokens: 4096,
+          system,
+          messages,
+        })
+        text = response.content
+          .filter(block => block.type === 'text')
+          .map(block => block.text)
+          .join('\n')
+      }
       process.stdout.write(`claude> ${text}\n\n`)
       messages.push({ role: 'assistant', content: text })
     } catch (error) {

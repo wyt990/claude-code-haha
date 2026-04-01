@@ -1,3 +1,7 @@
+import { applyAnthropicBaseUrlEnvNormalization } from './src/utils/anthropicBaseUrl.js';
+
+applyAnthropicBaseUrlEnvNormalization();
+
 const version = process.env.CLAUDE_CODE_LOCAL_VERSION ?? '999.0.0-local';
 const packageUrl = process.env.CLAUDE_CODE_LOCAL_PACKAGE_URL ?? 'claude-code-local';
 const buildTime = process.env.CLAUDE_CODE_LOCAL_BUILD_TIME ?? new Date().toISOString();

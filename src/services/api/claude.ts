@@ -229,6 +229,9 @@ import { getInitializationStatus } from '../lsp/manager.js'
 import { isToolFromMcpServer } from '../mcp/utils.js'
 import { withStreamingVCR, withVCR } from '../vcr.js'
 import { CLIENT_REQUEST_ID_HEADER, getAnthropicClient } from './client.js'
+import { isOpenAICompatApiMode } from './openaiCompat/config.js'
+import { openAICompatStreamingRequest } from './openaiCompat/openaiChatStream.js'
+import { openAICompatNonStreamingRequest } from './openaiCompat/openaiNonStreaming.js'
 import {
   API_ERROR_MESSAGE_PREFIX,
   CUSTOM_OFF_SWITCH_MESSAGE,
@@ -859,6 +862,36 @@ export async function* executeNonStreamingRequest(
         MAX_NON_STREAMING_TOKENS,
       )
 
+      if (isOpenAICompatApiMode()) {
+        try {
+          return await openAICompatNonStreamingRequest(
+            {
+              ...adjustedParams,
+              model: normalizeModelStringForAPI(adjustedParams.model),
+            },
+            retryOptions.signal,
+            clientOptions.fetchOverride,
+          )
+        } catch (err) {
+          if (err instanceof APIUserAbortError) throw err
+
+          logForDiagnosticsNoPII('error', 'cli_nonstreaming_fallback_error')
+          logEvent('tengu_nonstreaming_fallback_error', {
+            model:
+              clientOptions.model as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+            error:
+              err instanceof Error
+                ? (err.name as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS)
+                : ('unknown' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS),
+            attempt,
+            timeout_ms: fallbackTimeoutMs,
+            request_id: (originatingRequestId ??
+              'unknown') as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+          })
+          throw err
+        }
+      }
+
       try {
         // biome-ignore lint/plugin: non-streaming API call
         return await anthropic.beta.messages.create(
@@ -1053,6 +1086,16 @@ async function* queryModel(
   // so concurrent agents don't clobber each other's request chain tracking.
   // Also naturally handles rollback/undo since removed messages won't be in the array.
   const previousRequestId = getPreviousRequestIdFromMessages(messages)
+
+  if (isOpenAICompatApiMode() && getAPIProvider() !== 'firstParty') {
+    yield getAssistantMessageFromError(
+      new Error(
+        'CLAUDE_CODE_USE_OPENAI_COMPAT_API 仅适用于 firstParty API 路径；请关闭 CLAUDE_CODE_USE_BEDROCK、CLAUDE_CODE_USE_VERTEX、CLAUDE_CODE_USE_FOUNDRY。',
+      ),
+      options.model,
+    )
+    return
+  }
 
   const resolvedModel =
     getAPIProvider() === 'bedrock' &&
@@ -1805,6 +1848,18 @@ async function* queryModel(
         queryCheckpoint('query_api_request_sent')
         if (!options.agentId) {
           headlessProfilerCheckpoint('api_request_sent')
+        }
+
+        if (isOpenAICompatApiMode()) {
+          const pack = await openAICompatStreamingRequest(
+            { ...params, stream: true },
+            signal,
+            options.fetchOverride,
+          )
+          queryCheckpoint('query_response_headers_received')
+          streamRequestId = pack.requestId ?? randomUUID()
+          streamResponse = pack.response
+          return pack.stream
         }
 
         // Generate and track client request ID so timeouts (which return no

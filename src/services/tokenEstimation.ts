@@ -25,6 +25,7 @@ import { jsonStringify } from '../utils/slowOperations.js'
 import { isToolReferenceBlock } from '../utils/toolSearch.js'
 import { getAPIMetadata, getExtraBodyParams } from './api/claude.js'
 import { getAnthropicClient } from './api/client.js'
+import { isOpenAICompatApiMode } from './api/openaiCompat/config.js'
 import { withTokenCountVCR } from './vcr.js'
 
 // Minimal values for token counting with thinking enabled
@@ -137,12 +138,32 @@ export async function countTokensWithAPI(
   return countMessagesTokensWithAPI([message], [])
 }
 
+function roughEstimateInputTokensForOpenAICompat(
+  messages: Anthropic.Beta.Messages.BetaMessageParam[],
+  tools: Anthropic.Beta.Messages.BetaToolUnion[],
+): number {
+  let chars = 0
+  for (const m of messages) {
+    if (typeof m.content === 'string') {
+      chars += m.content.length
+    } else if (Array.isArray(m.content)) {
+      chars += JSON.stringify(m.content).length
+    }
+  }
+  chars += JSON.stringify(tools).length
+  return Math.max(1, Math.ceil(chars / 4))
+}
+
 export async function countMessagesTokensWithAPI(
   messages: Anthropic.Beta.Messages.BetaMessageParam[],
   tools: Anthropic.Beta.Messages.BetaToolUnion[],
 ): Promise<number | null> {
   return withTokenCountVCR(messages, tools, async () => {
     try {
+      if (isOpenAICompatApiMode()) {
+        return roughEstimateInputTokensForOpenAICompat(messages, tools)
+      }
+
       const model = getMainLoopModel()
       const betas = getModelBetas(model)
       const containsThinking = hasThinkingBlocks(messages)

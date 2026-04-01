@@ -2,7 +2,10 @@
 
 <p align="right"><strong>中文</strong> | <a href="./README.en.md">English</a></p>
 
-基于 Claude Code 泄露源码修复的**本地可运行版本**，支持接入任意 Anthropic 兼容 API（如 MiniMax、OpenRouter 等）。
+基于 Claude Code 泄露源码修复的**本地可运行版本**，支持两类后端：
+
+- **Anthropic Messages API**（默认）：如官方 API、MiniMax Anthropic 端点等；
+- **OpenAI Chat Completions**（可选）：如 one-api、部分仅提供 `/v1/chat/completions` 的聚合网关（需设置 `CLAUDE_CODE_USE_OPENAI_COMPAT_API`，详见下文与 [OpenAI 兼容说明](./docs/OpenAI兼容API接入方案.md)）。
 
 > 原始泄露源码无法直接运行。本仓库修复了启动链路中的多个阻塞问题，使完整的 Ink TUI 交互界面可以在本地工作。
 
@@ -16,6 +19,7 @@
 - `--print` 无头模式（脚本/CI 场景）
 - 支持 MCP 服务器、插件、Skills
 - 支持自定义 API 端点和模型
+- **OpenAI 格式兼容**（`CLAUDE_CODE_USE_OPENAI_COMPAT_API`）：流式 + 非流式兜底、Recovery CLI 等同路径
 - 降级 Recovery CLI 模式
 
 ---
@@ -111,6 +115,17 @@ DISABLE_TELEMETRY=1
 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```
 
+若网关为 **OpenAI Chat Completions**（而非 Anthropic `/v1/messages`），在 `.env` 中开启兼容并指向你的网关（勿在 URL 上加引号）：
+
+```env
+CLAUDE_CODE_USE_OPENAI_COMPAT_API=true
+ANTHROPIC_AUTH_TOKEN=你的令牌
+ANTHROPIC_BASE_URL=https://your-one-api.example/v1
+ANTHROPIC_MODEL=你在后台配置的模型名
+```
+
+更多变量（如 `CLAUDE_CODE_OPENAI_EXTRA_BODY`、与「仅修正 URL 的 Anthropic 模式」之区别）见 **`.env.example`** 与 **[docs/OpenAI兼容API接入方案.md](./docs/OpenAI兼容API接入方案.md)**。
+
 ### 4. 启动
 
 #### macOS / Linux
@@ -165,7 +180,11 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 |------|------|------|
 | `ANTHROPIC_API_KEY` | 二选一 | API Key，通过 `x-api-key` 头发送 |
 | `ANTHROPIC_AUTH_TOKEN` | 二选一 | Auth Token，通过 `Authorization: Bearer` 头发送 |
-| `ANTHROPIC_BASE_URL` | 否 | 自定义 API 端点，默认 Anthropic 官方 |
+| `ANTHROPIC_BASE_URL` | 否 | 自定义 API 根地址；Anthropic 模式为 Messages 基址，OpenAI 兼容模式用于拼 `/v1/chat/completions` |
+| `CLAUDE_CODE_USE_OPENAI_COMPAT_API` | 否 | 设为 `1`/`true` 时走 **OpenAI Chat Completions**，适合 one-api 等 |
+| `CLAUDE_CODE_OPENAI_COMPATIBLE_API` | 否 | 仅在使用 **Anthropic SDK** 时自动去掉 `ANTHROPIC_BASE_URL` 末尾 `/v1`，与上一项不同；详见文档 |
+| `CLAUDE_CODE_OPENAI_BASE_URL` | 否 | 可选，仅 OpenAI 兼容时单独指定网关（默认同 `ANTHROPIC_BASE_URL`） |
+| `CLAUDE_CODE_OPENAI_EXTRA_BODY` | 否 | 可选，合并进 Chat Completions JSON 的扩展字段 |
 | `ANTHROPIC_MODEL` | 否 | 默认模型 |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | 否 | Sonnet 级别模型映射 |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | 否 | Haiku 级别模型映射 |
@@ -207,6 +226,7 @@ CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claude-haha
 bin/claude-haha          # 入口脚本
 preload.ts               # Bun preload（设置 MACRO 全局变量）
 .env.example             # 环境变量模板
+docs/                    # 说明文档（含 OpenAI 兼容方案等）
 src/
 ├── entrypoints/cli.tsx  # CLI 主入口
 ├── main.tsx             # TUI 主逻辑（Commander.js + React/Ink）
@@ -218,7 +238,7 @@ src/
 ├── tools/               # Agent 工具（Bash, Edit, Grep 等）
 ├── commands/            # 斜杠命令（/commit, /review 等）
 ├── skills/              # Skill 系统
-├── services/            # 服务层（API, MCP, OAuth 等）
+├── services/            # 服务层（API, MCP, OAuth 等；含 openaiCompat/）
 ├── hooks/               # React hooks
 └── utils/               # 工具函数
 ```
@@ -233,7 +253,7 @@ src/
 | 语言 | TypeScript |
 | 终端 UI | React + [Ink](https://github.com/vadimdemedes/ink) |
 | CLI 解析 | Commander.js |
-| API | Anthropic SDK |
+| API | Anthropic SDK（默认）+ 可选 OpenAI Chat Completions 适配（`src/services/api/openaiCompat/`） |
 | 协议 | MCP, LSP |
 
 ---

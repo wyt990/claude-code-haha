@@ -2,7 +2,10 @@
 
 <p align="right"><a href="./README.md">中文</a> | <strong>English</strong></p>
 
-A **locally runnable version** repaired from the leaked Claude Code source, with support for any Anthropic-compatible API endpoint such as MiniMax and OpenRouter.
+A **locally runnable version** repaired from the leaked Claude Code source. It supports two backend styles:
+
+- **Anthropic Messages API** (default): official API, MiniMax Anthropic-style endpoints, etc.
+- **OpenAI Chat Completions** (optional): gateways that only expose `/v1/chat/completions` (e.g. many one-api deployments). Set `CLAUDE_CODE_USE_OPENAI_COMPAT_API` and see [OpenAI compatibility notes](./docs/OpenAI兼容API接入方案.md) (Chinese doc; env keys are English).
 
 > The original leaked source does not run as-is. This repository fixes multiple blocking issues in the startup path so the full Ink TUI can work locally.
 
@@ -16,6 +19,7 @@ A **locally runnable version** repaired from the leaked Claude Code source, with
 - `--print` headless mode for scripts and CI
 - MCP server, plugin, and Skills support
 - Custom API endpoint and model support
+- **OpenAI-style compatibility** (`CLAUDE_CODE_USE_OPENAI_COMPAT_API`): streaming + non-streaming fallback and Recovery CLI on the same code path
 - Fallback Recovery CLI mode
 
 ---
@@ -111,6 +115,17 @@ DISABLE_TELEMETRY=1
 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 ```
 
+If your gateway speaks **OpenAI Chat Completions** (not Anthropic `/v1/messages`), enable compatibility in `.env` (do not wrap the URL in quotes):
+
+```env
+CLAUDE_CODE_USE_OPENAI_COMPAT_API=true
+ANTHROPIC_AUTH_TOKEN=your_token
+ANTHROPIC_BASE_URL=https://your-one-api.example/v1
+ANTHROPIC_MODEL=model-name-from-your-dashboard
+```
+
+See **`.env.example`** and **[docs/OpenAI兼容API接入方案.md](./docs/OpenAI兼容API接入方案.md)** for `CLAUDE_CODE_OPENAI_EXTRA_BODY`, URL normalization, and differences from `CLAUDE_CODE_OPENAI_COMPATIBLE_API`.
+
 ### 4. Start
 
 #### macOS / Linux
@@ -165,7 +180,11 @@ bun --env-file=.env ./src/localRecoveryCli.ts
 |------|------|------|
 | `ANTHROPIC_API_KEY` | One of two | API key sent via the `x-api-key` header |
 | `ANTHROPIC_AUTH_TOKEN` | One of two | Auth token sent via the `Authorization: Bearer` header |
-| `ANTHROPIC_BASE_URL` | No | Custom API endpoint, defaults to Anthropic |
+| `ANTHROPIC_BASE_URL` | No | API base URL; in Anthropic mode this is the Messages API base; in OpenAI-compat mode it is used to build `/v1/chat/completions` |
+| `CLAUDE_CODE_USE_OPENAI_COMPAT_API` | No | Set to `1`/`true` to use **OpenAI Chat Completions** |
+| `CLAUDE_CODE_OPENAI_COMPATIBLE_API` | No | When using **Anthropic SDK only**, strips a trailing `/v1` from `ANTHROPIC_BASE_URL`; not the same as the row above — see the doc |
+| `CLAUDE_CODE_OPENAI_BASE_URL` | No | Optional separate base for OpenAI-compat (defaults to `ANTHROPIC_BASE_URL`) |
+| `CLAUDE_CODE_OPENAI_EXTRA_BODY` | No | Optional JSON object merged into the Chat Completions request body |
 | `ANTHROPIC_MODEL` | No | Default model |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | No | Sonnet-tier model mapping |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | No | Haiku-tier model mapping |
@@ -207,6 +226,7 @@ The leaked source could not run directly. This repository mainly fixes the follo
 bin/claude-haha          # Entry script
 preload.ts               # Bun preload (sets MACRO globals)
 .env.example             # Environment variable template
+docs/                    # Docs (incl. OpenAI compatibility guide)
 src/
 ├── entrypoints/cli.tsx  # Main CLI entry
 ├── main.tsx             # Main TUI logic (Commander.js + React/Ink)
@@ -218,7 +238,7 @@ src/
 ├── tools/               # Agent tools (Bash, Edit, Grep, etc.)
 ├── commands/            # Slash commands (/commit, /review, etc.)
 ├── skills/              # Skill system
-├── services/            # Service layer (API, MCP, OAuth, etc.)
+├── services/            # Service layer (API, MCP, OAuth, etc.; includes openaiCompat/)
 ├── hooks/               # React hooks
 └── utils/               # Utility functions
 ```
@@ -233,7 +253,7 @@ src/
 | Language | TypeScript |
 | Terminal UI | React + [Ink](https://github.com/vadimdemedes/ink) |
 | CLI parsing | Commander.js |
-| API | Anthropic SDK |
+| API | Anthropic SDK (default) + optional OpenAI Chat Completions adapter (`src/services/api/openaiCompat/`) |
 | Protocols | MCP, LSP |
 
 ---
