@@ -8,7 +8,8 @@
   },
   "scripts": {
     "claudecode": "bun run ./bin/claudecode",
-    "start": "bun run ./bin/claudecode"
+    "start": "bun run ./bin/claudecode",
+    "build:release": "bun run ./scripts/build-release.ts"
   },
   "dependencies": {
     "@anthropic-ai/bedrock-sdk": "^0.27.0",

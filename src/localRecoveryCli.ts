@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { readFileSync } from 'fs'
 import { createInterface } from 'readline'
+import { CLAUDE_CODE_VERSION } from './constants/version.js'
 import { isOpenAICompatApiMode } from './services/api/openaiCompat/config.js'
 import {
   betaMessageAssistantText,
@@ -40,7 +41,7 @@ function printHelp(): void {
 }
 
 function printVersion(): void {
-  process.stdout.write('100.0.0-local (Claude Code 本地降级版)\n')
+  process.stdout.write(`${CLAUDE_CODE_VERSION} (Claude Code 本地降级版)\n`)
 }
 
 function parseArgs(argv: string[]) {

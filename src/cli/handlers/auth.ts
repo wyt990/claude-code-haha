@@ -101,7 +101,7 @@ export async function installOAuthTokens(tokens: OAuthTokens): Promise<void> {
     const apiKey = await createAndStoreApiKey(tokens.accessToken)
     if (!apiKey) {
       throw new Error(
-        'Unable to create API key. The server accepted the request but did not return a key.',
+        '无法创建 API 密钥。服务器接受了请求，但未返回密钥。',
       )
     }
   }
@@ -122,7 +122,7 @@ export async function authLogin({
 }): Promise<void> {
   if (useConsole && claudeai) {
     process.stderr.write(
-      'Error: --console and --claudeai cannot be used together.\n',
+      '错误: --console 和 --claudeai 不能一起使用。\n',
     )
     process.exit(1)
   }

@@ -173,14 +173,96 @@ git checkout -b feature/foo origin/feature/foo
 
 ---
 
-## 10. 与本项目相关的忽略项
+## 10. 发布到 GitHub Releases（`dist/releases`）
+
+**说明：** **Git / `git push` 只会推送提交历史**，不会自动把 `dist/releases` 里的 `.tar` 挂到 GitHub Releases。编译产物在 **`.gitignore` 的 `dist/`** 下，通常**不进仓库**；发版时需要**单独上传**这些二进制归档。
+
+常见流程：**打一个版本标签（可选但推荐）→ 在 GitHub 上创建 Release → 把 `dist/releases/*.tar` 作为附件上传**。
+
+### 10.1 前置条件
+
+1. 已在本地生成产物（示例）：
+
+   ```bash
+   bun run build:release
+   # 或只打部分平台：bun run build:release -- --only windowsX64,linuxX64
+   ```
+
+   产物路径：`dist/releases/claudecode-<平台>-<版本>.tar`（版本来自 `src/constants/version.ts`）。
+
+2. 代码已推送到 GitHub（`git push origin main` 等）。
+
+3. 任选一种上传方式：
+   - **GitHub CLI `gh`**（推荐，一条命令可创建 Release 并附带文件）；
+   - 或浏览器打开仓库 **Releases → Draft a new release**，手动拖入 `.tar`。
+
+### 10.2 使用 GitHub CLI（`gh`）发布
+
+安装并登录（一次即可）：
+
+```bash
+# 例如：https://cli.github.com/
+gh auth login
+```
+
+在**仓库根目录**，假设本次要发布的 Git 标签为 `v100.0.0-local`（请与 `CLAUDE_CODE_VERSION` 或你的发版习惯一致）：
+
+```bash
+# 可选：打附注标签并推到远程（便于 Releases 关联提交）
+# 版本号在src/constants/version.ts文件中和package.json修改
+git tag -a "v100.0.0-local" -m "Release v100.0.0-local"
+git push origin "v100.0.0-local"
+
+# 创建 Release 并上传 dist/releases 下全部 tar（不含目录本身）
+gh release create "v100.0.0-local" \
+  dist/releases/*.tar \
+  --title "v100.0.0-local" \
+  --notes "汉化及修复大部分错误"
+
+# 每次指定仓库发布
+gh release create "v100.0.0-local" \
+  dist/releases/*.tar \
+  --repo wyt990/claude-code-haha \
+  --title "v100.0.0-local" \
+  --notes "汉化及修复大部分错误"
+```
+
+若**暂不推标签**，也可只创建 Release（不关联 tag 的做法较少用，一般仍建议有 tag）：
+
+```bash
+gh release create "v100.0.0-local" dist/releases/*.tar --title "..." --notes "..."
+```
+
+**注意：** 若 shell 展开 `dist/releases/*.tar` 时无匹配文件，命令会报错；请先确认 `build:release` 已成功且路径正确。
+
+### 10.3 在网页上手动发布
+
+1. 打开：`https://github.com/<用户名>/<仓库>/releases` → **Draft a new release**。  
+2. **Choose a tag**：新建标签（如 `v100.0.0-local`）或选已有标签。  
+3. 填写 Release title / 说明。  
+4. 将 `dist/releases/` 下的 `.tar` **拖拽**到附件区域（或 **Attach binaries**）。  
+5. 发布 **Publish release**。
+
+### 10.4 与「纯 Git」的关系小结
+
+| 操作 | 作用 |
+|------|------|
+| `git push` | 推送**源码提交**，不包含被 ignore 的 `dist/releases` |
+| `git tag` + `git push origin <tag>` | 在远程标记一个**版本点**，Releases 常与之对应 |
+| `gh release create …` 或网页上传 | 把 **`.tar` 二进制**挂到 GitHub **Releases** 下载区 |
+
+不要把个人访问令牌写进脚本提交到仓库；`gh auth login` 或系统凭据存储更安全。
+
+---
+
+## 11. 与本项目相关的忽略项
 
 - `.env` 含密钥，应出现在 **`.gitignore`** 中，**不要推送**到公开仓库。
 - 若曾误提交密钥，需在仓库中移除并**轮换**密钥，必要时使用 `git filter-repo` 等工具清理历史（超出本文范围）。
 
 ---
 
-## 11. 命令速查
+## 12. 命令速查
 
 ```bash
 git remote -v              # 查看远程
@@ -190,6 +272,9 @@ git push -u origin main    # 首次推送并跟踪
 git pull origin main       # 拉取并合并
 git fetch origin           # 只抓取
 git reset --hard origin/main  # 本地 main 与远程一致（丢本地提交）
+
+# Releases（需 gh CLI，且已 build:release）
+# gh release create v1.0.0 dist/releases/*.tar --title "v1.0.0" --notes "..."
 ```
 
 文档版本：随仓库维护更新；实际操作以你当前分支名为准（`main` / `master` 等）。
