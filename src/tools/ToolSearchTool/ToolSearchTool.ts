@@ -451,7 +451,7 @@ export const ToolSearchTool = buildTool({
         content.pending_mcp_servers &&
         content.pending_mcp_servers.length > 0
       ) {
-        text += `. Some MCP servers are still connecting: ${content.pending_mcp_servers.join(', ')}. Their tools will become available shortly — try searching again.`
+        text += `。部分 MCP 服务器仍在连接中：${content.pending_mcp_servers.join(', ')}。它们的工具将很快可用 —— 请稍后再试。`
       }
       return {
         type: 'tool_result',

@@ -155,7 +155,7 @@ export function formatOutput(content: string): {
 
   const truncatedPart = content.slice(0, maxOutputLength)
   const remainingLines = countCharInString(content, '\n', maxOutputLength) + 1
-  const truncated = `${truncatedPart}\n\n... [${remainingLines} lines truncated] ...`
+  const truncated = `${truncatedPart}\n\n... [已截断 ${remainingLines} 行] ...`
 
   return {
     totalLines: countCharInString(content, '\n') + 1,

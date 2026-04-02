@@ -158,7 +158,7 @@ function ResumeCommand({
       if (raw) process.stdout.write(raw);
 
       // Format the output message
-      const message = ['', 'This conversation is from a different directory.', '', 'To resume, run:', `  ${crossProjectCheck.command}`, '', '(Command copied to clipboard)', ''].join('\n');
+      const message = ['', '此会话来自不同的目录。', '', '要恢复，请运行：', `  ${crossProjectCheck.command}`, '', '（命令已复制到剪贴板）', ''].join('\n');
       onDone(message, {
         display: 'user'
       });
@@ -170,20 +170,20 @@ function ResumeCommand({
     void onResume(sessionId, fullLog, 'slash_command_picker');
   }
   function handleCancel() {
-    onDone('Resume cancelled', {
+    onDone('恢复已取消', {
       display: 'system'
     });
   }
   if (loading) {
     return <Box>
         <Spinner />
-        <Text> Loading conversations…</Text>
+        <Text> 加载会话中…</Text>
       </Box>;
   }
   if (resuming) {
     return <Box>
         <Spinner />
-        <Text> Resuming conversation…</Text>
+        <Text> 恢复会话中…</Text>
       </Box>;
   }
   return <LogSelector logs={logs} maxHeight={insideModal ? Math.floor(rows / 2) : rows - 2} onCancel={handleCancel} onSelect={handleSelect} onLogsChanged={() => loadLogs(showAllProjects, worktreePaths)} showAllProjects={showAllProjects} onToggleAllProjects={handleToggleAllProjects} onAgenticSearch={agenticSessionSearch} />;

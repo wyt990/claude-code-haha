@@ -293,7 +293,7 @@ export function registerKeybindingsSkill(): void {
   registerBundledSkill({
     name: 'keybindings-help',
     description:
-      'Use when the user wants to customize keyboard shortcuts, rebind keys, add chord bindings, or modify ~/.claude/keybindings.json. Examples: "rebind ctrl+s", "add a chord shortcut", "change the submit key", "customize keybindings".',
+      '适用于用户想要自定义键盘快捷键、重新绑定按键、添加组合键绑定或修改 ~/.claude/keybindings.json 文件的场景。示例：“重新绑定 Ctrl+S”“添加组合快捷键”“修改提交按键”“自定义按键绑定”。',
     allowedTools: ['Read'],
     userInvocable: false,
     isEnabled: isKeybindingCustomizationEnabled,

@@ -109,14 +109,14 @@ export function renderToolResultMessage(output: string | MCPToolResult, _progres
   }
   const estimatedTokens = getContentSizeEstimate(mcpOutput);
   const showWarning = estimatedTokens > MCP_OUTPUT_WARNING_THRESHOLD_TOKENS;
-  const warningMessage = showWarning ? `${figures.warning} Large MCP response (~${formatNumber(estimatedTokens)} tokens), this can fill up context quickly` : null;
+  const warningMessage = showWarning ? `${figures.warning} MCP 响应较大（约${formatNumber(estimatedTokens)} 个 token），可能会快速占用上下文空间` : null;
   let contentElement: React.ReactNode;
   if (Array.isArray(mcpOutput)) {
     const contentBlocks = mcpOutput.map((item, i) => {
       if (item.type === 'image') {
         return <Box key={i} justifyContent="space-between" overflowX="hidden" width="100%">
             <MessageResponse height={1}>
-              <Text>[Image]</Text>
+              <Text>[图片]</Text>
             </MessageResponse>
           </Box>;
       }
@@ -132,7 +132,7 @@ export function renderToolResultMessage(output: string | MCPToolResult, _progres
   } else if (!mcpOutput) {
     contentElement = <Box justifyContent="space-between" overflowX="hidden" width="100%">
         <MessageResponse height={1}>
-          <Text dimColor>(No content)</Text>
+          <Text dimColor>（无内容）</Text>
         </MessageResponse>
       </Box>;
   } else {

@@ -11,8 +11,13 @@
     "start": "bun run ./bin/claudecode"
   },
   "dependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.27.0",
+    "@anthropic-ai/foundry-sdk": "^0.2.3",
     "@anthropic-ai/sandbox-runtime": "^0.0.44",
     "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/vertex-sdk": "^0.14.4",
+    "@aws-sdk/client-sts": "^3.1022.0",
+    "@azure/identity": "^4.13.1",
     "@aws-sdk/client-bedrock-runtime": "^3.1020.0",
     "@commander-js/extra-typings": "^14.0.0",
     "@growthbook/growthbook": "^1.6.5",

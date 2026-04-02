@@ -47,10 +47,10 @@ export const call: LocalCommandCall = async (_args, context) => {
     n(r.mcp_count, 'plugin MCP server'),
     n(r.lsp_count, 'plugin LSP server'),
   ]
-  let msg = `Reloaded: ${parts.join(' · ')}`
+  let msg = `已重新加载：${parts.join(' · ')}`
 
   if (r.error_count > 0) {
-    msg += `\n${n(r.error_count, 'error')} during load. Run /doctor for details.`
+    msg += `\n加载时出现 ${n(r.error_count, '个错误')}。运行 /doctor 查看详情。`
   }
 
   return { type: 'text', value: msg }

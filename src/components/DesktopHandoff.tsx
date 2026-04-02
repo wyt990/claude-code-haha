@@ -144,7 +144,7 @@ export function DesktopHandoff(t0) {
     }
     let t5;
     if ($[14] === Symbol.for("react.memo_cache_sentinel")) {
-      t5 = <Text>Download now? (y/n)</Text>;
+      t5 = <Text>立即下载？(y/n)</Text>;
       $[14] = t5;
     } else {
       t5 = $[14];
@@ -162,10 +162,10 @@ export function DesktopHandoff(t0) {
   let t4;
   if ($[17] === Symbol.for("react.memo_cache_sentinel")) {
     t4 = {
-      checking: "Checking for Claude Desktop\u2026",
-      flushing: "Saving session\u2026",
-      opening: "Opening Claude Desktop\u2026",
-      success: "Opening in Claude Desktop\u2026"
+      checking: "正在检查 Claude Desktop\u2026",
+      flushing: "正在保存会话\u2026",
+      opening: "正在打开 Claude Desktop\u2026",
+      success: "正在 Claude Desktop 中打开\u2026"
     };
     $[17] = t4;
   } else {

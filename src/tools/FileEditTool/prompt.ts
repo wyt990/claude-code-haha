@@ -2,7 +2,7 @@ import { isCompactLinePrefixEnabled } from '../../utils/file.js'
 import { FILE_READ_TOOL_NAME } from '../FileReadTool/prompt.js'
 
 function getPreReadInstruction(): string {
-  return `\n- You must use your \`${FILE_READ_TOOL_NAME}\` tool at least once in the conversation before editing. This tool will error if you attempt an edit without reading the file. `
+  return `\n- 在编辑之前，您必须在对话中至少使用一次 \`${FILE_READ_TOOL_NAME}\` 工具。如果您尝试编辑而不读取文件，此工具将出错。`
 }
 
 export function getEditToolDescription(): string {

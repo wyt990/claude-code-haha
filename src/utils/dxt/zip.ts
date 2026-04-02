@@ -70,18 +70,18 @@ export function validateZipFile(
 
   // Check file count
   if (state.fileCount > LIMITS.MAX_FILE_COUNT) {
-    error = `Archive contains too many files: ${state.fileCount} (max: ${LIMITS.MAX_FILE_COUNT})`
+    error = `压缩包包含过多文件：${state.fileCount}（最大：${LIMITS.MAX_FILE_COUNT})`
   }
 
   // Validate path safety
   if (!isPathSafe(file.name)) {
-    error = `Unsafe file path detected: "${file.name}". Path traversal or absolute paths are not allowed.`
+    error = `检测到不安全的文件路径："${file.name}"。不允许路径遍历或绝对路径。`
   }
 
   // Check individual file size
   const fileSize = file.originalSize || 0
   if (fileSize > LIMITS.MAX_FILE_SIZE) {
-    error = `File "${file.name}" is too large: ${Math.round(fileSize / 1024 / 1024)}MB (max: ${Math.round(LIMITS.MAX_FILE_SIZE / 1024 / 1024)}MB)`
+    error = `文件 "${file.name}" 过大：${Math.round(fileSize / 1024 / 1024)}MB（最大：${Math.round(LIMITS.MAX_FILE_SIZE / 1024 / 1024)}MB）`
   }
 
   // Track total uncompressed size
@@ -89,13 +89,13 @@ export function validateZipFile(
 
   // Check total size
   if (state.totalUncompressedSize > LIMITS.MAX_TOTAL_SIZE) {
-    error = `Archive total size is too large: ${Math.round(state.totalUncompressedSize / 1024 / 1024)}MB (max: ${Math.round(LIMITS.MAX_TOTAL_SIZE / 1024 / 1024)}MB)`
+    error = `压缩包总大小过大：${Math.round(state.totalUncompressedSize / 1024 / 1024)}MB（最大：${Math.round(LIMITS.MAX_TOTAL_SIZE / 1024 / 1024)}MB）`
   }
 
   // Check compression ratio for zip bomb detection
   const currentRatio = state.totalUncompressedSize / state.compressedSize
   if (currentRatio > LIMITS.MAX_COMPRESSION_RATIO) {
-    error = `Suspicious compression ratio detected: ${currentRatio.toFixed(1)}:1 (max: ${LIMITS.MAX_COMPRESSION_RATIO}:1). This may be a zip bomb.`
+    error = `检测到可疑压缩比：${currentRatio.toFixed(1)}:1（最大：${LIMITS.MAX_COMPRESSION_RATIO}:1）。这可能是一个 zip bomb。`
   }
 
   return error ? { isValid: false, error } : { isValid: true }

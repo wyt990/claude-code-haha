@@ -101,9 +101,9 @@ export function registerBatchSkill(): void {
   registerBundledSkill({
     name: 'batch',
     description:
-      'Research and plan a large-scale change, then execute it in parallel across 5–30 isolated worktree agents that each open a PR.',
+      '研究并计划一个大型的变化，然后在一个并行的 5–30 个隔离的工作树代理中执行它，每个代理都会打开一个 PR。',
     whenToUse:
-      'Use when the user wants to make a sweeping, mechanical change across many files (migrations, refactors, bulk renames) that can be decomposed into independent parallel units.',
+      '当用户想要对许多文件进行广泛的、机械性的变化（迁移、重构、批量重命名）时使用，这些变化可以分解为独立的并行单元。',
     argumentHint: '<instruction>',
     userInvocable: true,
     disableModelInvocation: true,

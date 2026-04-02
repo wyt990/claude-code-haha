@@ -84,7 +84,7 @@ export function renderToolResultMessage(output: Output): React.ReactNode {
         } = output.file;
         const formattedSize = formatFileSize(originalSize);
         return <MessageResponse height={1}>
-          <Text>Read image ({formattedSize})</Text>
+          <Text>读取图片（{formattedSize}）</Text>
         </MessageResponse>;
       }
     case 'notebook':
@@ -93,11 +93,11 @@ export function renderToolResultMessage(output: Output): React.ReactNode {
           cells
         } = output.file;
         if (!cells || cells.length < 1) {
-          return <Text color="error">No cells found in notebook</Text>;
+          return <Text color="error">未找到单元格</Text>;
         }
         return <MessageResponse height={1}>
           <Text>
-            Read <Text bold>{cells.length}</Text> cells
+            读取 <Text bold>{cells.length}</Text> 个单元格
           </Text>
         </MessageResponse>;
       }
@@ -108,15 +108,15 @@ export function renderToolResultMessage(output: Output): React.ReactNode {
         } = output.file;
         const formattedSize = formatFileSize(originalSize);
         return <MessageResponse height={1}>
-          <Text>Read PDF ({formattedSize})</Text>
+          <Text>读取 PDF（{formattedSize}）</Text>
         </MessageResponse>;
       }
     case 'parts':
       {
         return <MessageResponse height={1}>
           <Text>
-            Read <Text bold>{output.file.count}</Text>{' '}
-            {output.file.count === 1 ? 'page' : 'pages'} (
+            读取 <Text bold>{output.file.count}</Text>{' '}
+            {output.file.count === 1 ? '页' : '页'}（
             {formatFileSize(output.file.originalSize)})
           </Text>
         </MessageResponse>;
@@ -128,15 +128,15 @@ export function renderToolResultMessage(output: Output): React.ReactNode {
         } = output.file;
         return <MessageResponse height={1}>
           <Text>
-            Read <Text bold>{numLines}</Text>{' '}
-            {numLines === 1 ? 'line' : 'lines'}
+            读取 <Text bold>{numLines}</Text>{' '}
+            {numLines === 1 ? '行' : '行'}
           </Text>
         </MessageResponse>;
       }
     case 'file_unchanged':
       {
         return <MessageResponse height={1}>
-          <Text dimColor>Unchanged since last read</Text>
+          <Text dimColor>自上次读取后未变更</Text>
         </MessageResponse>;
       }
   }

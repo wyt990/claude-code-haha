@@ -138,7 +138,7 @@ export async function execHttpHook(
   if (policy.allowedUrls !== undefined) {
     const matched = policy.allowedUrls.some(p => urlMatchesPattern(hook.url, p))
     if (!matched) {
-      const msg = `HTTP hook blocked: ${hook.url} does not match any pattern in allowedHttpHookUrls`
+      const msg = `HTTP hook 被阻止：${hook.url} 与 allowedHttpHookUrls 中的任何模式都不匹配`
       logForDebugging(msg, { level: 'warn' })
       return { ok: false, body: '', error: msg }
     }

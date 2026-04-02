@@ -3665,9 +3665,9 @@ Read the team config to discover your teammates' names. Check the task list peri
         .map((todo, index) => `${index + 1}. [${todo.status}] ${todo.content}`)
         .join('\n')
 
-      let message = `The TodoWrite tool hasn't been used recently. If you're working on tasks that would benefit from tracking progress, consider using the TodoWrite tool to track progress. Also consider cleaning up the todo list if has become stale and no longer matches what you are working on. Only use it if it's relevant to the current work. This is just a gentle reminder - ignore if not applicable. Make sure that you NEVER mention this reminder to the user\n`
+      let message = `TodoWrite 工具最近未被使用。如果您需要跟踪进度，可以使用 TodoWrite 工具来添加新任务或清理任务列表（如果已过时）。这与当前工作无关时请忽略，切勿向用户提及\n`
       if (todoItems.length > 0) {
-        message += `\n\nHere are the existing contents of your todo list:\n\n[${todoItems}]`
+        message += `\n\n以下是待办列表的现有内容：\n\n[${todoItems}]`
       }
 
       return wrapMessagesInSystemReminder([
@@ -3685,9 +3685,9 @@ Read the team config to discover your teammates' names. Check the task list peri
         .map(task => `#${task.id}. [${task.status}] ${task.subject}`)
         .join('\n')
 
-      let message = `The task tools haven't been used recently. If you're working on tasks that would benefit from tracking progress, consider using ${TASK_CREATE_TOOL_NAME} to add new tasks and ${TASK_UPDATE_TOOL_NAME} to update task status (set to in_progress when starting, completed when done). Also consider cleaning up the task list if it has become stale. Only use these if relevant to the current work. This is just a gentle reminder - ignore if not applicable. Make sure that you NEVER mention this reminder to the user\n`
+      let message = `任务工具最近未被使用。如果您需要跟踪进度，可以使用 ${TASK_CREATE_TOOL_NAME} 添加新任务，使用 ${TASK_UPDATE_TOOL_NAME} 更新任务状态（开始时设为 in_progress，完成时设为 completed）。如果任务列表已过时，也可以考虑清理。这与当前工作无关时请忽略，切勿向用户提及\n`
       if (taskItems.length > 0) {
-        message += `\n\nHere are the existing tasks:\n\n${taskItems}`
+        message += `\n\n现有任务列表：\n\n${taskItems}`
       }
 
       return wrapMessagesInSystemReminder([

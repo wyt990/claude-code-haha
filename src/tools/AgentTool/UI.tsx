@@ -374,7 +374,7 @@ export function renderToolResultMessage(data: Output, progressMessagesForMessage
     prompt
   } = data;
   const result = [totalToolUseCount === 1 ? '1 tool use' : `${totalToolUseCount} tool uses`, formatNumber(totalTokens) + ' tokens', formatDuration(totalDurationMs)];
-  const completionMessage = `Done (${result.join(' · ')})`;
+  const completionMessage = `完成（${result.join(' · ')}）`;
   const finalAssistantMessage = createAssistantMessage({
     content: completionMessage,
     usage: {

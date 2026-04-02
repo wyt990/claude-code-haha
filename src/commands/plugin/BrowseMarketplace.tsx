@@ -345,14 +345,14 @@ export function BrowseMarketplace({
     // Handle installation results
     if (failureCount === 0) {
       // All succeeded
-      const message = `✓ Installed ${successCount_0} ${plural(successCount_0, 'plugin')}. ` + `Run /reload-plugins to activate.`;
+      const message = `✓ 已安装 ${successCount_0} ${plural(successCount_0, 'plugin')}。` + `运行 /reload-plugins 激活。`;
       setResult(message);
     } else if (successCount_0 === 0) {
       // All failed - show error with reasons
-      setError(`Failed to install: ${formatFailureDetails(newFailedPlugins, true)}`);
+      setError(`安装失败：${formatFailureDetails(newFailedPlugins, true)}`);
     } else {
       // Mixed results - show partial success
-      const message_0 = `✓ Installed ${successCount_0} of ${successCount_0 + failureCount} plugins. ` + `Failed: ${formatFailureDetails(newFailedPlugins, false)}. ` + `Run /reload-plugins to activate successfully installed plugins.`;
+      const message_0 = `✓ 已安装 ${successCount_0} 个（共 ${successCount_0 + failureCount} 个插件）。` + `失败：${formatFailureDetails(newFailedPlugins, false)}。` + `运行 /reload-plugins 激活成功安装的插件。`;
       setResult(message_0);
     }
 

@@ -1021,18 +1021,18 @@ export async function teleportToRemote(options: {
             msg = 'Repository has no commits — run `git add . && git commit -m "initial"` then retry';
             break;
           case 'too_large':
-            msg = `Repo is too large to teleport${setup}`;
+            msg = `仓库太大，无法 teleport${setup}`;
             break;
           case 'git_error':
-            msg = `Failed to create git bundle (${bundle.error})${setup}`;
+            msg = `创建 git bundle 失败（${bundle.error}）${setup}`;
             break;
           case undefined:
-            msg = `Bundle upload failed: ${bundle.error}${setup}`;
+            msg = `Bundle 上传失败：${bundle.error}${setup}`;
             break;
           default: {
             const _exhaustive: never = reason;
             void _exhaustive;
-            msg = `Bundle upload failed: ${bundle.error}`;
+            msg = `Bundle 上传失败：${bundle.error}`;
           }
         }
         options.onBundleFail?.(msg);

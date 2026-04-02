@@ -3,6 +3,9 @@ export type AssistantDiscoveredSession = {
   label?: string
 }
 
+/** Alias for dialog launchers / bridge code that expect this name. */
+export type AssistantSession = AssistantDiscoveredSession
+
 /**
  * 列举可连接的远程 assistant 会话。本构建返回空列表（完整实现依赖内部桥接）。
  */

@@ -434,7 +434,7 @@ async function processUserInputBase(
       if (isBridgeSafeCommand(cmd)) {
         effectiveSkipSlash = false
       } else {
-        const msg = `/${getCommandName(cmd)} isn't available over Remote Control.`
+        const msg = `/${getCommandName(cmd)} 无法在远程控制中使用。`
         return {
           messages: [
             createUserMessage({ content: inputString, uuid }),

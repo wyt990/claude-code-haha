@@ -318,7 +318,7 @@ function formatDocumentSymbolNode(
   }
 
   const symbolLine = symbol.range.start.line + 1
-  line += ` - Line ${symbolLine}`
+  line += ` - 第 ${symbolLine} 行`
 
   lines.push(line)
 
@@ -407,7 +407,7 @@ export function formatWorkspaceSymbolResult(
     for (const symbol of symbols) {
       const kind = symbolKindToString(symbol.kind)
       const line = symbol.location.range.start.line + 1
-      let symbolLine = `  ${symbol.name} (${kind}) - Line ${line}`
+      let symbolLine = `  ${symbol.name} (${kind}) - 第 ${line} 行`
 
       // Add container name if available
       if (symbol.containerName) {
@@ -441,7 +441,7 @@ function formatCallHierarchyItem(
   const filePath = formatUri(item.uri, cwd)
   const line = item.range.start.line + 1
   const kind = symbolKindToString(item.kind)
-  let result = `${item.name} (${kind}) - ${filePath}:${line}`
+  let result = `${item.name} (${kind}) - ${filePath}：第 ${line} 行`
   if (item.detail) {
     result += ` [${item.detail}]`
   }
@@ -514,14 +514,14 @@ export function formatIncomingCallsResult(
       }
       const kind = symbolKindToString(call.from.kind)
       const line = call.from.range.start.line + 1
-      let callLine = `  ${call.from.name} (${kind}) - Line ${line}`
+      let callLine = `  ${call.from.name} (${kind}) - 第 ${line} 行`
 
       // Show call sites within the caller
       if (call.fromRanges && call.fromRanges.length > 0) {
         const callSites = call.fromRanges
           .map(r => `${r.start.line + 1}:${r.start.character + 1}`)
           .join(', ')
-        callLine += ` [calls at: ${callSites}]`
+        callLine += ` [调用位置：${callSites}]`
       }
 
       lines.push(callLine)
@@ -574,14 +574,14 @@ export function formatOutgoingCallsResult(
       }
       const kind = symbolKindToString(call.to.kind)
       const line = call.to.range.start.line + 1
-      let callLine = `  ${call.to.name} (${kind}) - Line ${line}`
+      let callLine = `  ${call.to.name} (${kind}) - 第 ${line} 行`
 
       // Show call sites within the current function
       if (call.fromRanges && call.fromRanges.length > 0) {
         const callSites = call.fromRanges
           .map(r => `${r.start.line + 1}:${r.start.character + 1}`)
           .join(', ')
-        callLine += ` [called from: ${callSites}]`
+        callLine += ` [被调用位置：${callSites}]`
       }
 
       lines.push(callLine)

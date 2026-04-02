@@ -455,10 +455,10 @@ export function validateBindings(
  */
 export function formatWarning(warning: KeybindingWarning): string {
   const icon = warning.severity === 'error' ? '✗' : '⚠'
-  let msg = `${icon} Keybinding ${warning.severity}: ${warning.message}`
+  let msg = `${icon} 按键绑定 ${warning.severity === 'error' ? '错误' : '警告'}：${warning.message}`
 
   if (warning.suggestion) {
-    msg += `\n  ${warning.suggestion}`
+    msg += `\n  建议：${warning.suggestion}`
   }
 
   return msg

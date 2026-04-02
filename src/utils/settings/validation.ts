@@ -138,7 +138,7 @@ export function formatZodError(
 
     if (isInvalidValueIssue(issue)) {
       expected = enumValues?.map(v => `"${v}"`).join(', ')
-      message = `Invalid value. Expected one of: ${expected}`
+      message = `无效值。应为以下之一：${expected}`
     } else if (isInvalidTypeIssue(issue)) {
       const receivedType =
         extractReceivedFromMessage(issue.message) ??
@@ -148,15 +148,15 @@ export function formatZodError(
         receivedType === 'null' &&
         path === ''
       ) {
-        message = 'Invalid or malformed JSON'
+        message = '无效或格式错误的 JSON'
       } else {
-        message = `Expected ${issue.expected}, but received ${receivedType}`
+        message = `应为 ${issue.expected}，但收到 ${receivedType}`
       }
     } else if (isUnrecognizedKeysIssue(issue)) {
       const keys = issue.keys.join(', ')
-      message = `Unrecognized ${plural(issue.keys.length, 'field')}: ${keys}`
+      message = `未识别的${plural(issue.keys.length, '字段')}: ${keys}`
     } else if (isTooSmallIssue(issue)) {
-      message = `Number must be greater than or equal to ${issue.minimum}`
+      message = `数字必须大于或等于 ${issue.minimum}`
       expected = String(issue.minimum)
     }
 
@@ -240,16 +240,16 @@ export function filterInvalidPermissionRules(
         warnings.push({
           file: filePath,
           path: `permissions.${key}`,
-          message: `Non-string value in ${key} array was removed`,
+          message: `${key} 数组中的非字符串值已移除`,
           invalidValue: rule,
         })
         return false
       }
       const result = validatePermissionRule(rule)
       if (!result.valid) {
-        let message = `Invalid permission rule "${rule}" was skipped`
-        if (result.error) message += `: ${result.error}`
-        if (result.suggestion) message += `. ${result.suggestion}`
+        let message = `无效权限规则 "${rule}" 已跳过`
+        if (result.error) message += `：${result.error}`
+        if (result.suggestion) message += `。${result.suggestion}`
         warnings.push({
           file: filePath,
           path: `permissions.${key}`,

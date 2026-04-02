@@ -96,14 +96,14 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
     if (remember) {
       try {
         persistPermissionUpdate(permissionUpdate);
-        message = `Added ${chalk.bold(path)} as a working directory and saved to local settings`;
+        message = `已添加 ${chalk.bold(path)} 作为工作目录并保存到本地设置`;
       } catch (error) {
-        message = `Added ${chalk.bold(path)} as a working directory. Failed to save to local settings: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        message = `已添加 ${chalk.bold(path)} 作为工作目录。保存到本地设置失败：${error instanceof Error ? error.message : '未知错误'}`;
       }
     } else {
-      message = `Added ${chalk.bold(path)} as a working directory for this session`;
+      message = `已添加 ${chalk.bold(path)} 作为本次会话的工作目录`;
     }
-    const messageWithHint = `${message} ${chalk.dim('· /permissions to manage')}`;
+    const messageWithHint = `${message} ${chalk.dim('· /permissions 进行管理')}`;
     onDone(messageWithHint);
   };
 
@@ -111,7 +111,7 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
   // and return to REPL after confirmation
   if (!directoryPath) {
     return <AddWorkspaceDirectory permissionContext={appState.toolPermissionContext} onAddDirectory={handleAddDirectory} onCancel={() => {
-      onDone('Did not add a working directory.');
+      onDone('未添加工作目录。');
     }} />;
   }
   const result = await validateDirectoryForWorkspace(directoryPath, appState.toolPermissionContext);

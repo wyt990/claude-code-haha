@@ -379,13 +379,13 @@ export function ScrollKeybindingHandler({
     let msg: string;
     switch (path) {
       case 'native':
-        msg = `copied ${n} chars to clipboard`;
+        msg = `已复制 ${n} 个字符到剪贴板`;
         break;
       case 'tmux-buffer':
-        msg = `copied ${n} chars to tmux buffer · paste with prefix + ]`;
+        msg = `已复制 ${n} 个字符到 tmux 缓冲区 · 使用 prefix + ] 粘贴`;
         break;
       case 'osc52':
-        msg = `sent ${n} chars via OSC 52 · check terminal clipboard settings if paste fails`;
+        msg = `已通过 OSC 52 发送 ${n} 个字符 · 如果粘贴失败请检查终端剪贴板设置`;
         break;
     }
     addNotification({

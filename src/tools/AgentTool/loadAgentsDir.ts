@@ -640,7 +640,7 @@ export function parseAgentFromMarkdown(
       (PERMISSION_MODES as readonly string[]).includes(permissionModeRaw)
 
     if (permissionModeRaw && !isValidPermissionMode) {
-      const errorMsg = `Agent file ${filePath} has invalid permissionMode '${permissionModeRaw}'. Valid options: ${PERMISSION_MODES.join(', ')}`
+      const errorMsg = `Agent 文件 ${filePath} 包含无效的 permissionMode '${permissionModeRaw}'。有效选项：${PERMISSION_MODES.join(', ')}`
       logForDebugging(errorMsg)
     }
 

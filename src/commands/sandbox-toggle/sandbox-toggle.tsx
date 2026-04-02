@@ -24,14 +24,14 @@ export async function call(onDone: (result?: string) => void, _context: unknown,
 
   // Check if platform is in enabledPlatforms list (undocumented enterprise setting)
   if (!SandboxManager.isPlatformInEnabledList()) {
-    const message = color('error', themeName)(`Error: Sandboxing is disabled for this platform (${platform}) via the enabledPlatforms setting.`);
+    const message = color('error', themeName)(`错误：沙盒在此平台 (${platform}) 上已通过 enabledPlatforms 设置禁用。`);
     onDone(message);
     return null;
   }
 
   // Check if sandbox settings are locked by higher-priority settings
   if (SandboxManager.areSandboxSettingsLockedByPolicy()) {
-    const message = color('error', themeName)('Error: Sandbox settings are overridden by a higher-priority configuration and cannot be changed locally.');
+    const message = color('error', themeName)('错误：沙盒设置已被更高优先级的配置覆盖，无法在本地更改。');
     onDone(message);
     return null;
   }
@@ -52,7 +52,7 @@ export async function call(onDone: (result?: string) => void, _context: unknown,
       // Handle exclude subcommand
       const commandPattern = trimmedArgs.slice('exclude '.length).trim();
       if (!commandPattern) {
-        const message = color('error', themeName)('Error: Please provide a command pattern to exclude (e.g., /sandbox exclude "npm run test:*")');
+        const message = color('error', themeName)('错误：请提供要排除的命令模式（例如：/sandbox exclude "npm run test:*"）');
         onDone(message);
         return null;
       }
@@ -66,12 +66,12 @@ export async function call(onDone: (result?: string) => void, _context: unknown,
       // Get the local settings path and make it relative to cwd
       const localSettingsPath = getSettingsFilePathForSource('localSettings');
       const relativePath = localSettingsPath ? relative(getCwdState(), localSettingsPath) : '.claude/settings.local.json';
-      const message = color('success', themeName)(`Added "${cleanPattern}" to excluded commands in ${relativePath}`);
+      const message = color('success', themeName)(`已将 "${cleanPattern}" 添加到 ${relativePath} 中的排除命令`);
       onDone(message);
       return null;
     } else {
       // Unknown subcommand
-      const message = color('error', themeName)(`Error: Unknown subcommand "${subcommand}". Available subcommand: exclude`);
+      const message = color('error', themeName)(`错误：未知子命令 "${subcommand}"。可用子命令：exclude`);
       onDone(message);
       return null;
     }

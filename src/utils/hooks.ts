@@ -1308,7 +1308,7 @@ async function execCommandHook(
       }
     } else {
       const errorMsg = errorMessage(error)
-      const errOutput = `Error occurred while executing hook command: ${errorMsg}`
+      const errOutput = `执行 hook 命令时发生错误：${errorMsg}`
       return {
         stdout: '',
         stderr: errOutput,

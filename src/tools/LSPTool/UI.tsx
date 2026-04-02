@@ -17,41 +17,41 @@ const OPERATION_LABELS: Record<Input['operation'], {
   special?: string;
 }> = {
   goToDefinition: {
-    singular: 'definition',
-    plural: 'definitions'
+    singular: '定义',
+    plural: '个定义'
   },
   findReferences: {
-    singular: 'reference',
-    plural: 'references'
+    singular: '引用',
+    plural: '个引用'
   },
   documentSymbol: {
-    singular: 'symbol',
-    plural: 'symbols'
+    singular: '符号',
+    plural: '个符号'
   },
   workspaceSymbol: {
-    singular: 'symbol',
-    plural: 'symbols'
+    singular: '符号',
+    plural: '个符号'
   },
   hover: {
-    singular: 'hover info',
-    plural: 'hover info',
-    special: 'available'
+    singular: '悬停信息',
+    plural: '悬停信息',
+    special: '可用'
   },
   goToImplementation: {
-    singular: 'implementation',
-    plural: 'implementations'
+    singular: '实现',
+    plural: '个实现'
   },
   prepareCallHierarchy: {
-    singular: 'call item',
-    plural: 'call items'
+    singular: '调用项',
+    plural: '个调用项'
   },
   incomingCalls: {
-    singular: 'caller',
-    plural: 'callers'
+    singular: '调用者',
+    plural: '个调用者'
   },
   outgoingCalls: {
-    singular: 'callee',
-    plural: 'callees'
+    singular: '被调用者',
+    plural: '个被调用者'
   }
 };
 
@@ -82,7 +82,7 @@ function LSPResultSummary(t0) {
   const countLabel = resultCount === 1 ? labelConfig.singular : labelConfig.plural;
   let t2;
   if ($[2] !== countLabel || $[3] !== labelConfig.special || $[4] !== operation || $[5] !== resultCount) {
-    t2 = operation === "hover" && resultCount > 0 && labelConfig.special ? <Text>Hover info {labelConfig.special}</Text> : <Text>Found <Text bold={true}>{resultCount} </Text>{countLabel}</Text>;
+    t2 = operation === "hover" && resultCount > 0 && labelConfig.special ? <Text>悬停信息 {labelConfig.special}</Text> : <Text>找到 <Text bold={true}>{resultCount} </Text>{countLabel}</Text>;
     $[2] = countLabel;
     $[3] = labelConfig.special;
     $[4] = operation;
@@ -94,7 +94,7 @@ function LSPResultSummary(t0) {
   const primaryText = t2;
   let t3;
   if ($[7] !== fileCount) {
-    t3 = fileCount > 1 ? <Text>{" "}across <Text bold={true}>{fileCount} </Text>files</Text> : null;
+    t3 = fileCount > 1 ? <Text>，涉及 <Text bold={true}>{fileCount} </Text>个文件</Text> : null;
     $[7] = fileCount;
     $[8] = t3;
   } else {

@@ -76,7 +76,7 @@ function FileWriteToolCreatedMessage(t0) {
   }
   let t4;
   if ($[7] !== t1 || $[8] !== t3) {
-    t4 = <Text>Wrote {t1} lines to{" "}{t3}</Text>;
+    t4 = <Text>已写入 {t1} 行到{" "}{t3}</Text>;
     $[7] = t1;
     $[8] = t3;
     $[9] = t4;
@@ -285,7 +285,7 @@ function WriteRejectionBody(t0) {
   if (data.type === "error") {
     let t1;
     if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-      t1 = <MessageResponse><Text>(No changes)</Text></MessageResponse>;
+      t1 = <MessageResponse><Text>（无更改）</Text></MessageResponse>;
       $[0] = t1;
     } else {
       t1 = $[0];

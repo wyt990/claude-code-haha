@@ -169,13 +169,13 @@ export function WorktreeExitDialog({
   if (status === 'keeping') {
     return <Box flexDirection="row" marginY={1}>
         <Spinner />
-        <Text>Keeping worktree…</Text>
+        <Text>保留 worktree…</Text>
       </Box>;
   }
   if (status === 'removing') {
     return <Box flexDirection="row" marginY={1}>
         <Spinner />
-        <Text>Removing worktree…</Text>
+        <Text>移除 worktree…</Text>
       </Box>;
   }
   const branchName = worktreeSession.worktreeBranch;
@@ -183,13 +183,13 @@ export function WorktreeExitDialog({
   const hasCommits = commitCount > 0;
   let subtitle = '';
   if (hasUncommitted && hasCommits) {
-    subtitle = `You have ${changes.length} uncommitted ${changes.length === 1 ? 'file' : 'files'} and ${commitCount} ${commitCount === 1 ? 'commit' : 'commits'} on ${branchName}. All will be lost if you remove.`;
+    subtitle = `您有 ${changes.length} 个未提交的${changes.length === 1 ? '文件' : '文件'}和 ${commitCount} 个${commitCount === 1 ? '提交' : '提交'}在 ${branchName} 分支上。如果删除，所有内容都将丢失。`;
   } else if (hasUncommitted) {
-    subtitle = `You have ${changes.length} uncommitted ${changes.length === 1 ? 'file' : 'files'}. These will be lost if you remove the worktree.`;
+    subtitle = `您有 ${changes.length} 个未提交的${changes.length === 1 ? '文件' : '文件'}。如果删除 worktree，这些内容将丢失。`;
   } else if (hasCommits) {
-    subtitle = `You have ${commitCount} ${commitCount === 1 ? 'commit' : 'commits'} on ${branchName}. The branch will be deleted if you remove the worktree.`;
+    subtitle = `您在 ${branchName} 分支上有 ${commitCount} 个${commitCount === 1 ? '提交' : '提交'}。如果删除 worktree，该分支将被删除。`;
   } else {
-    subtitle = 'You are working in a worktree. Keep it to continue working there, or remove it to clean up.';
+    subtitle = '您正在 worktree 中工作。保留它以继续在那里工作，或删除它以清理。';
   }
   function handleCancel() {
     if (onCancel) {

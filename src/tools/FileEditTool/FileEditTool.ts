@@ -229,12 +229,12 @@ export const FileEditTool = buildTool({
       // Try to find a similar file with a different extension
       const similarFilename = findSimilarFile(fullFilePath)
       const cwdSuggestion = await suggestPathUnderCwd(fullFilePath)
-      let message = `File does not exist. ${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}.`
+      let message = `文件不存在。${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}。`
 
       if (cwdSuggestion) {
-        message += ` Did you mean ${cwdSuggestion}?`
+        message += ` 您是不是想说 ${cwdSuggestion}？`
       } else if (similarFilename) {
-        message += ` Did you mean ${similarFilename}?`
+        message += ` 您是不是想说 ${similarFilename}？`
       }
 
       return {

@@ -438,7 +438,7 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
     const context = this.lastExportErrorContext
       ? ` (${this.lastExportErrorContext})`
       : ''
-    const message = `1P event logging: ${events.length} events failed to export${context}`
+    const message = `1P 事件日志：${events.length} 个事件导出失败${context}`
     logError(new Error(message))
   }
 

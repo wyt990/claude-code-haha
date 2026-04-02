@@ -162,6 +162,7 @@ import { setAllHookEventsEnabled } from 'src/utils/hooks/hookEvents.js';
 import { refreshModelCapabilities } from 'src/utils/model/modelCapabilities.js';
 import { peekForStdinData, writeToStderr } from 'src/utils/process.js';
 import { setCwd } from 'src/utils/Shell.js';
+import { plural } from 'src/utils/stringUtils.js';
 import { type ProcessedResume, processResumedConversation } from 'src/utils/sessionRestore.js';
 import { parseSettingSourcesFlag } from 'src/utils/settings/constants.js';
 import { type ChannelEntry, getInitialMainLoopModel, getIsNonInteractiveSession, getSdkBetas, getSessionId, getUserMsgOptIn, setAllowedChannels, setAllowedSettingSources, setChromeFlagOverride, setClientType, setCwdState, setDirectConnectServerUrl, setFlagSettingsPath, setInitialMainLoopModel, setInlinePlugins, setIsInteractive, setKairosActive, setOriginalCwd, setProjectRoot, setQuestionPreviewFormat, setSdkBetas, setSessionBypassPermissionsMode, setSessionPersistenceDisabled, setSessionSource, setUserMsgOptIn, switchSession } from './bootstrap/state.js';
@@ -997,11 +998,12 @@ async function run(): Promise<CommanderCommand> {
   .option('--model <model>', `当前会话使用的模型。可写别名（如 'sonnet'、'opus'）或完整模型名（如 'claude-sonnet-4-6'）。`).addOption(new Option('--effort <level>', `当前会话的努力级别（low、medium、high、max）`).argParser((rawValue: string) => {
     const value = rawValue.toLowerCase();
     const allowed = ['low', 'medium', 'high', 'max'];
+    const allowedLabels: Record<string, string> = { low: 'low（低）', medium: 'medium（中）', high: 'high（高）', max: 'max（最高）' };
     if (!allowed.includes(value)) {
-      throw new InvalidArgumentError(`必须是以下之一：${allowed.join(', ')}`);
+      throw new InvalidArgumentError(`必须是以下之一：${allowed.map(v => allowedLabels[v]).join(', ')}`);
     }
     return value;
-  })).option('--agent <agent>', `当前会话使用的 Agent，覆盖设置中的 agent。`).option('--betas <betas...>', '包含在 API 请求中的 Beta 头（仅 API 密钥用户）').option('--fallback-model <model>', '主模型过载时自动回退到指定模型（仅 --print）').addOption(new Option('--workload <tag>', '计费头归因的工作负载标签（cc_workload）。进程级；由 SDK 守护进程等为定时任务子进程设置（仅 --print）').hideHelp()).option('--settings <file-or-json>', '设置 JSON 文件路径或 JSON 字符串，用于加载额外设置').option('--add-dir <directories...>', '允许工具访问的额外目录').option('--ide', '启动时若仅有一个可用 IDE 则自动连接', () => true).option('--strict-mcp-config', '仅使用 --mcp-config 中的 MCP 服务器，忽略其余 MCP 配置', () => true).option('--session-id <uuid>', '指定会话 ID（须为有效 UUID）').option('-n, --name <name>', '本会话显示名称（见于 /resume 与终端标题）').option('--agents <json>', '自定义 Agent 的 JSON（如 \'{"reviewer": {"description": "代码评审", "prompt": "你是代码评审助手"}}\')').option('--setting-sources <sources>', '要加载的设置来源列表，逗号分隔（user、project、local）。')
+  })).option('--agent <agent>', `当前会话使用的 Agent，覆盖设置中的 agent。`).option('--betas <betas...>', '包含在 API 请求中的 Beta 头（仅 API 密钥用户）').option('--fallback-model <model>', '主模型过载时自动回退到指定模型（仅 --print）').addOption(new Option('--workload <tag>', '计费头归因的工作负载标签（cc_workload）。进程级；由 SDK 守护进程等为定时任务子进程设置（仅 --print）').hideHelp()).option('--settings <file-or-json>', '设置 JSON 文件路径或 JSON 字符串，用于加载额外设置').option('--add-dir <directories...>', '允许工具访问的额外目录').option('--ide', '启动时若仅有一个可用 IDE 则自动连接', () => true).option('--strict-mcp-config', '仅使用 --mcp-config 中的 MCP 服务器，忽略其余 MCP 配置', () => true).option('--session-id <uuid>', '指定会话 ID（须为有效 UUID）').option('-n, --name <name>', '本会话显示名称（见于 /resume 与终端标题）').option('--agents <json>', 'JSON object defining custom agents (e.g. \'{"reviewer": {"description": "Reviews code", "prompt": "You are a code reviewer"}}\')').option('--setting-sources <sources>', '要加载的设置来源列表，逗号分隔（user、project、local）。')
   // gh-33508: <paths...> (variadic) consumed everything until the next
   // --flag. `claude --plugin-dir /path mcp add --transport http` swallowed
   // `mcp` and `add` as paths, then choked on --transport as an unknown
@@ -2988,7 +2990,7 @@ async function run(): Promise<CommanderCommand> {
       const n = displayList.length;
       initialNotifications.push({
         key: 'overly-broad-bash-notification',
-        text: `${displays}（来源：${sources}）：共 ${n} 条过于宽泛的 Shell 允许规则已被忽略 — Ant 内部构建不支持，请改用自动模式`,
+        text: `${displays} allow ${plural(n, 'rule')} from ${sources} ${plural(n, 'was', 'were')} ignored \u2014 not available for Ants, please use auto-mode instead`,
         color: 'warning',
         priority: 'high'
       });
@@ -3262,7 +3264,7 @@ async function run(): Promise<CommanderCommand> {
       } catch (err) {
         return await exitWithError(root, err instanceof DirectConnectError ? err.message : String(err), () => gracefulShutdown(1));
       }
-      const connectInfoMessage = createSystemMessage(`已连接服务器：${_pendingConnect.url}\n会话：${directConnectConfig.sessionId}`, 'info');
+      const connectInfoMessage = createSystemMessage(`Connected to server at ${_pendingConnect.url}\nSession: ${directConnectConfig.sessionId}`, 'info');
       startupProgressStderr('即将进入 REPL（Direct Connect）');
       await launchRepl(root, {
         getFpsMetrics,
@@ -3329,7 +3331,7 @@ async function run(): Promise<CommanderCommand> {
       } catch (err) {
         return await exitWithError(root, err instanceof SSHSessionError ? err.message : String(err), () => gracefulShutdown(1));
       }
-      const sshInfoMessage = createSystemMessage(_pendingSSH.local ? `本地 ssh 代理测试会话\n工作目录：${sshSession.remoteCwd}\n认证：Unix 套接字 → 本地代理` : `SSH 会话：${_pendingSSH.host}\n远程工作目录：${sshSession.remoteCwd}\n认证：Unix 套接字 -R → 本地代理`, 'info');
+      const sshInfoMessage = createSystemMessage(_pendingSSH.local ? `Local ssh-proxy test session\ncwd: ${sshSession.remoteCwd}\nAuth: unix socket → local proxy` : `SSH session to ${_pendingSSH.host}\nRemote cwd: ${sshSession.remoteCwd}\nAuth: unix socket -R → local proxy`, 'info');
       startupProgressStderr('即将进入 REPL（SSH 会话）');
       await launchRepl(root, {
         getFpsMetrics,
@@ -3419,7 +3421,7 @@ async function run(): Promise<CommanderCommand> {
       setUserMsgOptIn(true);
       setIsRemoteMode(true);
       const remoteSessionConfig = createRemoteSessionConfig(targetSessionId, getAccessToken, apiCreds.orgUUID, /* hasInitialPrompt */false, /* viewerOnly */true);
-      const infoMessage = createSystemMessage(`已附加到 Assistant 会话 ${targetSessionId.slice(0, 8)}…`, 'info');
+      const infoMessage = createSystemMessage(`Attached to assistant session ${targetSessionId.slice(0, 8)}…`, 'info');
       const assistantInitialState: AppState = {
         ...initialState,
         isBriefOnly: true,
@@ -3561,7 +3563,7 @@ async function run(): Promise<CommanderCommand> {
 
         // Add remote session info as initial system message
         const remoteSessionUrl = `${getRemoteSessionUrl(createdSession.id)}?m=0`;
-        const remoteInfoMessage = createSystemMessage(`远程控制已启用。可在本 CLI 或 ${remoteSessionUrl} 继续编码`, 'info');
+        const remoteInfoMessage = createSystemMessage(`/remote-control is active. Code in CLI or at ${remoteSessionUrl}`, 'info');
 
         // Create initial user message from the prompt if provided (CCR echoes it back but we ignore that)
         const initialUserMessage = hasInitialPrompt ? createUserMessage({
@@ -3887,7 +3889,7 @@ async function run(): Promise<CommanderCommand> {
             lastFetch: options.deepLinkLastFetch !== undefined ? new Date(options.deepLinkLastFetch) : undefined
           }), 'warning');
         } else if (options.prefill) {
-          deepLinkBanner = createSystemMessage('已使用预填提示启动 — 请在按 Enter 前仔细确认内容。', 'warning');
+          deepLinkBanner = createSystemMessage('Launched with a pre-filled prompt — review it before pressing Enter.', 'warning');
         }
       }
       const initialMessages = deepLinkBanner ? [deepLinkBanner, ...hookMessages] : hookMessages.length > 0 ? hookMessages : undefined;
@@ -4010,7 +4012,7 @@ async function run(): Promise<CommanderCommand> {
   if (isXaaEnabled()) {
     registerMcpXaaIdpCommand(mcp);
   }
-  mcp.command('remove <name>').description('删除一个 MCP 服务器').option('-s, --scope <scope>', '配置范围 (local, user, or project) - 如果未指定，则删除所在范围').action(async (name: string, options: {
+  mcp.command('remove <name>').description('删除一个 MCP 服务器').option('-s, --scope <scope>', '配置范围（local、user 或 project）- 如果未指定，则删除所在范围').action(async (name: string, options: {
     scope?: string;
   }) => {
     const {
@@ -4030,7 +4032,7 @@ async function run(): Promise<CommanderCommand> {
     } = await import('./cli/handlers/mcp.js');
     await mcpGetHandler(name);
   });
-  mcp.command('add-json <name> <json>').description('添加一个 MCP 服务器 (stdio 或 SSE) 和一个 JSON 字符串').option('-s, --scope <scope>', '配置范围 (local, user, or project)', 'local').option('--client-secret', '提示输入 OAuth 客户端密钥 (或设置 MCP_CLIENT_SECRET 环境变量)').action(async (name: string, json: string, options: {
+  mcp.command('add-json <name> <json>').description('添加一个 MCP 服务器（stdio 或 SSE）和一个 JSON 字符串').option('-s, --scope <scope>', '配置范围（local、user 或 project）', 'local').option('--client-secret', '提示输入 OAuth 客户端密钥 (或设置 MCP_CLIENT_SECRET 环境变量)').action(async (name: string, json: string, options: {
     scope?: string;
     clientSecret?: true;
   }) => {
@@ -4039,7 +4041,7 @@ async function run(): Promise<CommanderCommand> {
     } = await import('./cli/handlers/mcp.js');
     await mcpAddJsonHandler(name, json, options);
   });
-  mcp.command('add-from-claude-desktop').description('从 Claude Desktop 导入 MCP 服务器 (Mac 和 WSL 仅支持)').option('-s, --scope <scope>', '配置范围 (local, user, or project)', 'local').action(async (options: {
+  mcp.command('add-from-claude-desktop').description('从 Claude Desktop 导入 MCP 服务器（仅支持 Mac 和 WSL）').option('-s, --scope <scope>', '配置范围（local、user 或 project）', 'local').action(async (options: {
     scope?: string;
   }) => {
     const {
@@ -4140,7 +4142,7 @@ async function run(): Promise<CommanderCommand> {
   // this action it means the argv rewrite didn't fire (e.g. user ran
   // `claude ssh` with no host) — just print usage.
   if (feature('SSH_REMOTE')) {
-    program.command('ssh <host> [dir]').description('在远程主机上运行 Claude Code。部署二进制文件并通过您的本地机器隧道 API 认证。无需远程设置。').option('--permission-mode <mode>', '远程会话的权限模式').option('--dangerously-skip-permissions', '跳过远程的所有权限提示 (危险)').option('--local', 'e2e 测试模式 — 在本地生成子 CLI (跳过 ssh/部署)。 练习身份验证代理和 unix 套接字 plumbing 而无需远程主机。').action(async () => {
+    program.command('ssh <host> [dir]').description('在远程主机上运行 Claude Code。部署二进制文件并通过您的本地机器隧道 API 认证。无需远程设置。').option('--permission-mode <mode>', '远程会话的权限模式').option('--dangerously-skip-permissions', '跳过远程的所有权限提示 (危险)').option('--local', 'e2e 测试模式 — 在本地生成子 CLI（跳过 ssh/部署）。练习身份验证代理和 unix 套接字 plumbing 而无需远程主机。').action(async () => {
       // Argv rewriting in main() should have consumed `ssh <host>` before
       // commander runs. Reaching here means host was missing or the
       // rewrite predicate didn't match.
@@ -4196,7 +4198,7 @@ async function run(): Promise<CommanderCommand> {
   // claude auth
 
   const auth = program.command('auth').description('管理认证').configureHelp(createSortedHelpConfig());
-  auth.command('login').description('登录到您的 Anthropic 账户').option('--email <email>', '在登录页面上预填充电子邮件地址').option('--sso', '强制 SSO 登录流程').option('--console', '使用 Anthropic Console（API 使用计费）而不是 Claude 订阅').option('--claudeai', '使用 Claude 订阅（默认）').action(async ({
+  auth.command('login').description('登录到您的 Anthropic 账户').option('--email <email>', '在登录页面上预填充电子邮件地址').option('--sso', '强制 SSO 登录流程').option('--console', '使用 Anthropic Console（API 使用计费）而非 Claude 订阅').option('--claudeai', '使用 Claude 订阅（默认）').action(async ({
     email,
     sso,
     console: useConsole,
@@ -4267,7 +4269,7 @@ async function run(): Promise<CommanderCommand> {
 
   // 市场子命令
   const marketplaceCmd = pluginCmd.command('marketplace').description('管理 Claude Code 市场').configureHelp(createSortedHelpConfig());
-  marketplaceCmd.command('add <source>').description('从 URL、路径或 GitHub 仓库添加一个市场').addOption(coworkOption()).option('--sparse <paths...>', '通过 git sparse-checkout 限制 checkout 到特定目录（适用于 monorepos）。示例：--sparse .claude-plugin plugins').option('--scope <scope>', '声明市场的位置：user（默认）、project 或 local').action(async (source: string, options: {
+  marketplaceCmd.command('add <source>').description('从 URL、路径或 GitHub 仓库添加一个市场').addOption(coworkOption()).option('--sparse <paths...>', '通过 git sparse-checkout 限制 checkout 到特定目录（适用于 monorepo）。示例：--sparse .claude-plugin plugins').option('--scope <scope>', '声明市场的位置：user（默认）、project 或 local').action(async (source: string, options: {
     cowork?: boolean;
     sparse?: string[];
     scope?: string;
@@ -4476,7 +4478,7 @@ async function run(): Promise<CommanderCommand> {
   // claude rollback（仅 ant）
   // 回退到上一个发布版本
   if (MACRO.BUILD_IS_ANT) {
-    program.command('rollback [target]').description('[ANT-ONLY] 回退到上一个版本\n\n示例:\n  claude rollback                                    回退 1 个版本\n  claude rollback 3                                  回退 3 个版本\n  claude rollback 2.0.73-dev.20251217.t190658        回退到特定版本').option('-l, --list', '列出最近发布的版本及时间').option('--dry-run', '显示将要安装的内容但不实际安装').option('--safe', '回退到服务器锁定的安全版本（由 oncall 在事件期间设置）').action(async (target?: string, options?: {
+    program.command('rollback [target]').description('[ANT-ONLY] 回退到上一个版本\n\n示例:\n  claude rollback                                    回退 1 个版本\n  claude rollback 3                                  回退 3 个版本\n  claude rollback 2.0.73-dev.20251217.t190658        回退到特定版本').option('-l, --list', '列出最近发布的版本及时间').option('--dry-run', '显示将要安装的内容但不实际安装').option('--safe', '回退到服务器锁定的安全版本（由 oncall 值班期间设置）').action(async (target?: string, options?: {
       list?: boolean;
       dryRun?: boolean;
       safe?: boolean;

@@ -108,7 +108,7 @@ export function FastModePicker(t0) {
         });
         return;
       }
-      const message = initialFastMode ? `${getFastIconString()} Kept Fast mode ON` : "Kept Fast mode OFF";
+      const message = initialFastMode ? `${getFastIconString()} 保持快速模式开启` : "保持快速模式关闭";
       onDone(message, {
         display: "system"
       });

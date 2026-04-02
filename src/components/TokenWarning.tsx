@@ -72,7 +72,7 @@ function CollapseLabel(t0) {
   if (total === 0) {
     return null;
   }
-  const label = `${collapsed} / ${total} summarized`;
+  const label = `${collapsed} / ${total} 已汇总`;
   const t4 = upgradeMessage ? `${label} \u00b7 ${upgradeMessage}` : label;
   let t5;
   if ($[6] !== t4) {

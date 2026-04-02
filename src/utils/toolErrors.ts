@@ -125,7 +125,7 @@ export function formatZodValidationError(
   }
 
   if (errorParts.length > 0) {
-    errorContent = `${toolName} failed due to the following ${errorParts.length > 1 ? 'issues' : 'issue'}:\n${errorParts.join('\n')}`
+    errorContent = `${toolName} 由于以下${errorParts.length > 1 ? '问题' : '问题'}失败：\n${errorParts.join('\n')}`
   }
 
   return errorContent

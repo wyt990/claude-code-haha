@@ -39,7 +39,7 @@ function LimitBar(t0) {
   if (utilization === null) {
     return null;
   }
-  const usedText = `${Math.floor(utilization)}% used`;
+  const usedText = `${Math.floor(utilization)}% 已使用`;
   let subtext;
   if (resets_at) {
     let t2;
@@ -51,7 +51,7 @@ function LimitBar(t0) {
     } else {
       t2 = $[2];
     }
-    subtext = `Resets ${t2}`;
+    subtext = `重置于 ${t2}`;
   }
   if (extraSubtext) {
     if (subtext) {

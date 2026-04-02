@@ -74,7 +74,7 @@ git push -u origin main
 ```bash
 git status
 git add .
-git commit -m "翻译main中的一些英文为中文"
+git commit -m "翻译和修复错误"
 
 # 已设置过 -u 后可直接：
 git push

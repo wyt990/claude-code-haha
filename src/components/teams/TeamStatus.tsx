@@ -40,7 +40,7 @@ export function TeamStatus(t0) {
     t2 = $[4];
   }
   const hint = t2;
-  const statusText = `${totalTeammates} ${totalTeammates === 1 ? "teammate" : "teammates"}`;
+  const statusText = `${totalTeammates} 位${totalTeammates === 1 ? "队友" : "队友"}`;
   const t3 = teamsSelected ? "selected" : "normal";
   let t4;
   if ($[5] !== statusText || $[6] !== t3 || $[7] !== teamsSelected) {

@@ -141,11 +141,11 @@ export async function validatePluginManifest(
     const code = getErrnoCode(error)
     let message: string
     if (code === 'ENOENT') {
-      message = `File not found: ${absolutePath}`
+      message = `文件未找到：${absolutePath}`
     } else if (code === 'EISDIR') {
-      message = `Path is not a file: ${absolutePath}`
+      message = `路径不是文件：${absolutePath}`
     } else {
-      message = `Failed to read file: ${errorMessage(error)}`
+      message = `读取文件失败：${errorMessage(error)}`
     }
     return {
       success: false,
@@ -322,11 +322,11 @@ export async function validateMarketplaceManifest(
     const code = getErrnoCode(error)
     let message: string
     if (code === 'ENOENT') {
-      message = `File not found: ${absolutePath}`
+      message = `文件未找到：${absolutePath}`
     } else if (code === 'EISDIR') {
-      message = `Path is not a file: ${absolutePath}`
+      message = `路径不是文件：${absolutePath}`
     } else {
-      message = `Failed to read file: ${errorMessage(error)}`
+      message = `读取文件失败：${errorMessage(error)}`
     }
     return {
       success: false,

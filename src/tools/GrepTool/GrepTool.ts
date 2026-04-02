@@ -214,9 +214,9 @@ export const GrepTool = buildTool({
       } catch (e: unknown) {
         if (isENOENT(e)) {
           const cwdSuggestion = await suggestPathUnderCwd(absolutePath)
-          let message = `Path does not exist: ${path}. ${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}.`
+          let message = `路径不存在：${path}。${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}。`
           if (cwdSuggestion) {
-            message += ` Did you mean ${cwdSuggestion}?`
+            message += ` 您是不是想说 ${cwdSuggestion}？`
           }
           return {
             result: false,
@@ -282,7 +282,7 @@ export const GrepTool = buildTool({
       const rawContent = content || 'No matches found'
       const matches = numMatches ?? 0
       const files = numFiles ?? 0
-      const summary = `\n\nFound ${matches} total ${matches === 1 ? 'occurrence' : 'occurrences'} across ${files} ${files === 1 ? 'file' : 'files'}.${limitInfo ? ` with pagination = ${limitInfo}` : ''}`
+      const summary = `\n\n找到 ${matches} 个匹配结果，分布在 ${files} 个文件中${limitInfo ? `，分页信息：${limitInfo}` : ''}。`
       return {
         tool_use_id: toolUseID,
         type: 'tool_result',
@@ -296,11 +296,11 @@ export const GrepTool = buildTool({
       return {
         tool_use_id: toolUseID,
         type: 'tool_result',
-        content: 'No files found',
+        content: '未找到文件',
       }
     }
     // head_limit has already been applied in call() method, so just show all filenames
-    const result = `Found ${numFiles} ${plural(numFiles, 'file')}${limitInfo ? ` ${limitInfo}` : ''}\n${filenames.join('\n')}`
+    const result = `找到 ${numFiles} 个文件${limitInfo ? ` ${limitInfo}` : ''}\n${filenames.join('\n')}`
     return {
       tool_use_id: toolUseID,
       type: 'tool_result',

@@ -319,7 +319,7 @@ export function MCPListPanel(t0) {
               maxReconnectAttempts
             } = server_3.client;
             if (reconnectAttempt && maxReconnectAttempts) {
-              statusText = `reconnecting (${reconnectAttempt}/${maxReconnectAttempts})…`;
+              statusText = `重新连接中 (${reconnectAttempt}/${maxReconnectAttempts})…`;
             } else {
               statusText = "connecting\u2026";
             }

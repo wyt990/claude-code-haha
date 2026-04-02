@@ -325,7 +325,7 @@ export function registerScheduleRemoteAgentsSkill(): void {
   registerBundledSkill({
     name: 'schedule',
     description:
-      'Create, update, list, or run scheduled remote agents (triggers) that execute on a cron schedule.',
+      '创建、更新、列出或运行计划远程代理（触发器），这些代理在 cron 计划上执行。',
     whenToUse:
       'When the user wants to schedule a recurring remote agent, set up automated tasks, create a cron job for Claude Code, or manage their scheduled agents/triggers.',
     userInvocable: true,

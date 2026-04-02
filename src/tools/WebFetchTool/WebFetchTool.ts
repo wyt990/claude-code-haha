@@ -224,13 +224,13 @@ ${DESCRIPTION}`
               ? 'Temporary Redirect'
               : 'Found'
 
-      const message = `REDIRECT DETECTED: The URL redirects to a different host.
+      const message = `检测到重定向：URL 重定向到了不同的主机。
 
-Original URL: ${response.originalUrl}
-Redirect URL: ${response.redirectUrl}
-Status: ${response.statusCode} ${statusText}
+原始 URL：${response.originalUrl}
+重定向 URL：${response.redirectUrl}
+状态码：${response.statusCode} ${statusText}
 
-To complete your request, I need to fetch content from the redirected URL. Please use WebFetch again with these parameters:
+要完成您的请求，我需要从重定向的 URL 获取内容。请使用以下参数重新使用 WebFetch：
 - url: "${response.redirectUrl}"
 - prompt: "${prompt}"`
 
@@ -281,7 +281,7 @@ To complete your request, I need to fetch content from the redirected URL. Pleas
     // mime-derived extension. Note it so Claude can inspect the raw file
     // if the Haiku summary above isn't enough.
     if (persistedPath) {
-      result += `\n\n[Binary content (${contentType}, ${formatFileSize(persistedSize ?? bytes)}) also saved to ${persistedPath}]`
+      result += `\n\n[二进制内容（${contentType}，${formatFileSize(persistedSize ?? bytes)}）已保存至 ${persistedPath}]`
     }
 
     const output: Output = {

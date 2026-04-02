@@ -368,7 +368,7 @@ export function ExitPlanModePermissionRequest({
 
       // Capture the transcript path before context is cleared (session ID will be regenerated)
       const transcriptPath = getTranscriptPath();
-      const transcriptHint = `\n\nIf you need specific details from before exiting plan mode (like exact code snippets, error messages, or content you generated), read the full transcript at: ${transcriptPath}`;
+      const transcriptHint = `\n\n如果您需要退出计划模式之前的具体细节（如精确代码片段、错误消息或您生成的内容），请阅读完整记录：${transcriptPath}`;
       const teamHint = isAgentSwarmsEnabled() ? `\n\nIf this plan can be broken down into multiple independent tasks, consider using the ${TEAM_CREATE_TOOL_NAME} tool to create a team and parallelize the work.` : '';
       const feedbackSuffix = acceptFeedback ? `\n\nUser feedback on this plan: ${acceptFeedback}` : '';
       setAppState(prev => ({

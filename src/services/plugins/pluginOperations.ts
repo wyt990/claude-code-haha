@@ -1066,7 +1066,7 @@ async function performPluginUpdate({
     }
 
     const scopeDesc = projectPath ? `${scope} (${projectPath})` : scope
-    const message = `Plugin "${pluginName}" updated from ${oldVersion || 'unknown'} to ${newVersion} for scope ${scopeDesc}. Restart to apply changes.`
+    const message = `插件 "${pluginName}" 已从 ${oldVersion || '未知'} 更新到 ${newVersion}（作用域：${scopeDesc}）。重启以应用更改。`
 
     return {
       success: true,

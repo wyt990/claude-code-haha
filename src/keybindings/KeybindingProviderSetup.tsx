@@ -73,15 +73,15 @@ function useKeybindingWarnings(warnings, isReload) {
       const warnCount = count(warnings, _temp2);
       let message;
       if (errorCount > 0 && warnCount > 0) {
-        message = `Found ${errorCount} keybinding ${plural(errorCount, "error")} and ${warnCount} ${plural(warnCount, "warning")}`;
+        message = `发现 ${errorCount} 个按键绑定错误和 ${warnCount} 个警告`;
       } else {
         if (errorCount > 0) {
-          message = `Found ${errorCount} keybinding ${plural(errorCount, "error")}`;
+          message = `发现 ${errorCount} 个按键绑定错误`;
         } else {
-          message = `Found ${warnCount} keybinding ${plural(warnCount, "warning")}`;
+          message = `发现 ${warnCount} 个按键绑定警告`;
         }
       }
-      message = message + " \xB7 /doctor for details";
+      message = message + " \xB7 /doctor 查看详情";
       addNotification({
         key: "keybinding-config-warning",
         text: message,

@@ -115,7 +115,7 @@ function makeOutputFromSearchResponse(
     if (block.type === 'web_search_tool_result') {
       // Handle error case - content is a WebSearchToolResultError
       if (!Array.isArray(block.content)) {
-        const errorMessage = `Web search error: ${block.content.error_code}`
+        const errorMessage = `网络搜索错误：${block.content.error_code}`
         logError(new Error(errorMessage))
         results.push(errorMessage)
         continue
@@ -401,7 +401,7 @@ export const WebSearchTool = buildTool({
   mapToolResultToToolResultBlockParam(output, toolUseID) {
     const { query, results } = output
 
-    let formattedOutput = `Web search results for query: "${query}"\n\n`
+    let formattedOutput = `网络搜索结果，查询："${query}"\n\n`
 
     // Process the results array - it can contain both string summaries and search result objects.
     // Guard against null/undefined entries that can appear after JSON round-tripping
@@ -416,9 +416,9 @@ export const WebSearchTool = buildTool({
       } else {
         // Search result with links
         if (result.content?.length > 0) {
-          formattedOutput += `Links: ${jsonStringify(result.content)}\n\n`
+          formattedOutput += `链接：${jsonStringify(result.content)}\n\n`
         } else {
-          formattedOutput += 'No links found.\n\n'
+          formattedOutput += '未找到链接。\n\n'
         }
       }
     })

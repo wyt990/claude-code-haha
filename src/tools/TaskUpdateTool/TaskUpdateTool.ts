@@ -377,11 +377,11 @@ export const TaskUpdateTool = buildTool({
       return {
         tool_use_id: toolUseID,
         type: 'tool_result',
-        content: error || `Task #${taskId} not found`,
+        content: error || `任务 #${taskId} 未找到`,
       }
     }
 
-    let resultContent = `Updated task #${taskId} ${updatedFields.join(', ')}`
+    let resultContent = `已更新任务 #${taskId}：${updatedFields.join(', ')}`
 
     // Add reminder for teammates when they complete a task (supports in-process teammates)
     if (
@@ -390,11 +390,11 @@ export const TaskUpdateTool = buildTool({
       isAgentSwarmsEnabled()
     ) {
       resultContent +=
-        '\n\nTask completed. Call TaskList now to find your next available task or see if your work unblocked others.'
+        '\n\n任务已完成。现在调用 TaskList 查找下一个可用任务，或查看您的工作是否解除了其他任务的阻塞。'
     }
 
     if (verificationNudgeNeeded) {
-      resultContent += `\n\nNOTE: You just closed out 3+ tasks and none of them was a verification step. Before writing your final summary, spawn the verification agent (subagent_type="${VERIFICATION_AGENT_TYPE}"). You cannot self-assign PARTIAL by listing caveats in your summary — only the verifier issues a verdict.`
+      resultContent += `\n\n注意：您刚刚关闭了 3 个以上的任务，其中没有一个是验证步骤。在编写最终摘要之前，请生成验证代理（subagent_type="${VERIFICATION_AGENT_TYPE}"）。您不能通过在摘要中列出注意事项来自我分配 PARTIAL —— 只有验证者才能做出裁决。`
     }
 
     return {

@@ -274,7 +274,7 @@ export async function call(
     // Resume into the fork
     const titleInfo = title ? ` "${title}"` : ''
     const resumeHint = `\nTo resume the original: claude -r ${originalSessionId}`
-    const successMessage = `Branched conversation${titleInfo}. You are now in the branch.${resumeHint}`
+    const successMessage = `已创建对话分支${titleInfo}。您现在在分支中。${resumeHint}`
 
     if (context.resume) {
       await context.resume(sessionId, forkLog, 'fork')
@@ -282,7 +282,7 @@ export async function call(
     } else {
       // Fallback if resume not available
       onDone(
-        `Branched conversation${titleInfo}. Resume with: /resume ${sessionId}`,
+        `已创建对话分支${titleInfo}。使用 /resume ${sessionId} 恢复。`,
       )
     }
 

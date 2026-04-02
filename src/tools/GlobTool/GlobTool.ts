@@ -108,9 +108,9 @@ export const GlobTool = buildTool({
       } catch (e: unknown) {
         if (isENOENT(e)) {
           const cwdSuggestion = await suggestPathUnderCwd(absolutePath)
-          let message = `Directory does not exist: ${path}. ${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}.`
+          let message = `目录不存在：${path}。${FILE_NOT_FOUND_CWD_NOTE} ${getCwd()}。`
           if (cwdSuggestion) {
-            message += ` Did you mean ${cwdSuggestion}?`
+            message += ` 您是不是想说 ${cwdSuggestion}？`
           }
           return {
             result: false,
@@ -124,7 +124,7 @@ export const GlobTool = buildTool({
       if (!stats.isDirectory()) {
         return {
           result: false,
-          message: `Path is not a directory: ${path}`,
+          message: `路径不是目录：${path}`,
           errorCode: 2,
         }
       }

@@ -141,16 +141,16 @@ export function markBackslashReturnUsed(): void {
 }
 export async function call(onDone: LocalJSXCommandOnDone, context: ToolUseContext & LocalJSXCommandContext, _args: string): Promise<null> {
   if (env.terminal && env.terminal in NATIVE_CSIU_TERMINALS) {
-    const message = `Shift+Enter is natively supported in ${NATIVE_CSIU_TERMINALS[env.terminal]}.
+    const message = `Shift+Enter 在 ${NATIVE_CSIU_TERMINALS[env.terminal]} 中原生支持。
 
-No configuration needed. Just use Shift+Enter to add newlines.`;
+无需配置。直接使用 Shift+Enter 添加换行。`;
     onDone(message);
     return null;
   }
 
   // Check if terminal is supported
   if (!shouldOfferTerminalSetup()) {
-    const terminalName = env.terminal || 'your current terminal';
+    const terminalName = env.terminal || '当前终端';
     const currentPlatform = getPlatform();
 
     // Build platform-specific terminal suggestions
@@ -163,19 +163,19 @@ No configuration needed. Just use Shift+Enter to add newlines.`;
     // For Linux and other platforms, we don't show native terminal options
     // since they're not currently supported
 
-    const message = `Terminal setup cannot be run from ${terminalName}.
+    const message = `无法在 ${terminalName} 中运行终端设置。
 
-This command configures a convenient Shift+Enter shortcut for multi-line prompts.
-${chalk.dim('Note: You can already use backslash (\\\\) + return to add newlines.')}
+此命令配置一个便捷的 Shift+Enter 快捷键用于多行输入。
+${chalk.dim('提示：您可以直接使用反斜杠 (\\\\) + 回车来添加换行。')}
 
-To set up the shortcut (optional):
-1. Exit tmux/screen temporarily
-2. Run /terminal-setup directly in one of these terminals:
+设置快捷键（可选）：
+1. 暂时退出 tmux/screen
+2. 在以下终端中直接运行 /terminal-setup：
 ${platformTerminals}   • IDE: VSCode, Cursor, Windsurf, Zed
-   • Other: Alacritty
-3. Return to tmux/screen - settings will persist
+   • 其他: Alacritty
+3. 返回 tmux/screen - 设置将保留
 
-${chalk.dim('Note: iTerm2, WezTerm, Ghostty, Kitty, and Warp support Shift+Enter natively.')}`;
+${chalk.dim('提示：iTerm2、WezTerm、Ghostty、Kitty 和 Warp 原生支持 Shift+Enter。')}`;
     onDone(message);
     return null;
   }

@@ -2,7 +2,7 @@ import { c as _c } from "react/compiler-runtime";
 import { extname } from 'path';
 import React, { Suspense, use, useMemo } from 'react';
 import { Ansi, Text } from '../../ink.js';
-import { getCliHighlightPromise } from '../../utils/cliHighlight.js';
+import { type CliHighlight, getCliHighlightPromise } from '../../utils/cliHighlight.js';
 import { logForDebugging } from '../../utils/debug.js';
 import { convertLeadingTabsToSpaces } from '../../utils/file.js';
 import { hashPair } from '../../utils/hash.js';
@@ -134,7 +134,7 @@ function Highlighted(t0) {
   } else {
     t1 = $[0];
   }
-  const hl = use(t1);
+  const hl = use(t1) as CliHighlight | null;
   let t2;
   if ($[1] !== codeWithSpaces || $[2] !== hl || $[3] !== language) {
     bb0: {
@@ -144,7 +144,10 @@ function Highlighted(t0) {
       }
       let highlightLang = "markdown";
       if (language) {
-        if (hl.supportsLanguage(language)) {
+        if (
+          typeof hl.supportsLanguage === "function" &&
+          hl.supportsLanguage(language)
+        ) {
           highlightLang = language;
         } else {
           logForDebugging(`Language not supported while highlighting code, falling back to markdown: ${language}`);

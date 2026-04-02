@@ -607,11 +607,11 @@ export const BashTool = buildTool({
     if (backgroundTaskId) {
       const outputPath = getTaskOutputPath(backgroundTaskId);
       if (assistantAutoBackgrounded) {
-        backgroundInfo = `Command exceeded the assistant-mode blocking budget (${ASSISTANT_BLOCKING_BUDGET_MS / 1000}s) and was moved to the background with ID: ${backgroundTaskId}. It is still running — you will be notified when it completes. Output is being written to: ${outputPath}. In assistant mode, delegate long-running work to a subagent or use run_in_background to keep this conversation responsive.`;
+        backgroundInfo = `命令超过了助手模式阻塞预算（${ASSISTANT_BLOCKING_BUDGET_MS / 1000}秒），已移至后台运行，ID：${backgroundTaskId}。命令仍在运行，完成后会通知您。输出写入至：${outputPath}。在助手模式下，请将长时间运行的工作委托给子代理，或使用 run_in_background 保持对话响应。`;
       } else if (backgroundedByUser) {
-        backgroundInfo = `Command was manually backgrounded by user with ID: ${backgroundTaskId}. Output is being written to: ${outputPath}`;
+        backgroundInfo = `命令已由用户手动移至后台运行，ID：${backgroundTaskId}。输出写入至：${outputPath}`;
       } else {
-        backgroundInfo = `Command running in background with ID: ${backgroundTaskId}. Output is being written to: ${outputPath}`;
+        backgroundInfo = `命令在后台运行中，ID：${backgroundTaskId}。输出写入至：${outputPath}`;
       }
     }
     return {

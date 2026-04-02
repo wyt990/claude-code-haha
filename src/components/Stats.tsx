@@ -526,7 +526,7 @@ function OverviewTab({
       {/* Shot stats (ant-only) */}
       {shotStatsData && <>
           <Box marginTop={1}>
-            <Text>Shot distribution</Text>
+            <Text>猜测分布</Text>
           </Box>
           <Box flexDirection="row" gap={4}>
             <Box flexDirection="column" width={28}>
@@ -1141,8 +1141,8 @@ function renderOverviewToAnsi(stats: ClaudeCodeStats): string[] {
   lines.push(row('Sessions', formatNumber(stats.totalSessions), 'Longest session', stats.longestSession ? formatDuration(stats.longestSession.duration) : 'N/A'));
 
   // Row 3: Current streak | Longest streak
-  const currentStreakVal = `${stats.streaks.currentStreak} ${stats.streaks.currentStreak === 1 ? 'day' : 'days'}`;
-  const longestStreakVal = `${stats.streaks.longestStreak} ${stats.streaks.longestStreak === 1 ? 'day' : 'days'}`;
+  const currentStreakVal = `${stats.streaks.currentStreak} ${stats.streaks.currentStreak === 1 ? '天' : '天'}`;
+  const longestStreakVal = `${stats.streaks.longestStreak} ${stats.streaks.longestStreak === 1 ? '天' : '天'}`;
   lines.push(row('Current streak', currentStreakVal, 'Longest streak', longestStreakVal));
 
   // Row 4: Active days | Peak hour

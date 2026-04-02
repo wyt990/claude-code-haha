@@ -315,7 +315,7 @@ export function Feedback({
             <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="取消" />
           </Byline> : null}>
       {step === 'userInput' && <Box flexDirection="column" gap={1}>
-          <Text>Describe the issue below:</Text>
+          <Text>请在下方描述问题：</Text>
           <TextInput value={description} onChange={value => {
         setDescription(value);
         // Clear error when user starts editing to allow retry
@@ -352,8 +352,8 @@ export function Feedback({
                   {envInfo.gitState.branchName}
                   {envInfo.gitState.commitHash ? `, ${envInfo.gitState.commitHash.slice(0, 7)}` : ''}
                   {envInfo.gitState.remoteUrl ? ` @ ${envInfo.gitState.remoteUrl}` : ''}
-                  {!envInfo.gitState.isHeadOnRemote && ', not synced'}
-                  {!envInfo.gitState.isClean && ', has local changes'}
+                  {!envInfo.gitState.isHeadOnRemote && '，未同步'}
+                  {!envInfo.gitState.isClean && '，存在本地更改'}
                 </Text>
               </Text>}
             <Text>- 当前会话记录</Text>
@@ -398,7 +398,7 @@ export function createGitHubIssueUrl(feedbackId: string, title: string, descript
   const errorSuffix = `\n\`\`\`\n`;
   const errorsJson = jsonStringify(errors);
   const baseUrl = `${GITHUB_ISSUES_REPO_URL}/new?title=${encodeURIComponent(sanitizedTitle)}&labels=user-reported,bug&body=`;
-  const truncationNote = `\n**Note:** Content was truncated.\n`;
+  const truncationNote = `\n**注意：** 内容已截断。\n`;
   const encodedPrefix = encodeURIComponent(bodyPrefix);
   const encodedSuffix = encodeURIComponent(errorSuffix);
   const encodedNote = encodeURIComponent(truncationNote);

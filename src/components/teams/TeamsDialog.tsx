@@ -248,7 +248,7 @@ function TeamDetailView(t0) {
     selectedIndex,
     onCancel
   } = t0;
-  const subtitle = `${teammates.length} ${teammates.length === 1 ? "teammate" : "teammates"}`;
+  const subtitle = `${teammates.length} 位${teammates.length === 1 ? "队友" : "队友"}`;
   const supportsHideShow = getCachedBackend()?.supportsHideShow ?? false;
   const cycleModeShortcut = useShortcutDisplay("confirm:cycleMode", "Confirmation", "shift+tab");
   const t1 = `Team ${teamName}`;

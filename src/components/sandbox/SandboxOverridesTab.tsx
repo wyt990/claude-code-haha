@@ -121,7 +121,7 @@ function OverridesSelect(t0) {
       await SandboxManager.setSandboxSettings({
         allowUnsandboxedCommands: mode === "open"
       });
-      const message = mode === "open" ? "\u2713 Unsandboxed fallback allowed - commands can run outside sandbox when necessary" : "\u2713 Strict sandbox mode - all commands must run in sandbox or be excluded via the `excludedCommands` option";
+      const message = mode === "open" ? "\u2713 允许非沙盒回退 - 命令可在必要时在沙盒外运行" : "\u2713 严格沙盒模式 - 所有命令必须在沙盒中运行或通过 `excludedCommands` 选项排除";
       onComplete(message);
     };
     $[9] = onComplete;

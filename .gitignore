@@ -3,3 +3,6 @@
 !.env.example
 node_modules
 docs/*.md
+build
+build/
+backup/

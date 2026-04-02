@@ -1119,12 +1119,12 @@ export function ManagePlugins({
         });
         return;
       }
-      const operationName = operation === 'enable' ? 'Enabled' : operation === 'disable' ? 'Disabled' : operation === 'update' ? 'Updated' : 'Uninstalled';
+      const operationName = operation === 'enable' ? '已启用' : operation === 'disable' ? '已禁用' : operation === 'update' ? '已更新' : '已卸载';
 
       // Single-line warning — notification timeout is ~8s, multi-line would scroll off.
       // The persistent record is in the Errors tab (dependency-unsatisfied after reload).
-      const depWarn = reverseDependents && reverseDependents.length > 0 ? ` · required by ${reverseDependents.join(', ')}` : '';
-      const message = `✓ ${operationName} ${selectedPlugin.plugin.name}${depWarn}. Run /reload-plugins to apply.`;
+      const depWarn = reverseDependents && reverseDependents.length > 0 ? ` · 被 ${reverseDependents.join(', ')} 依赖` : '';
+      const message = `✓ ${operationName} ${selectedPlugin.plugin.name}${depWarn}。运行 /reload-plugins 应用更改。`;
       setResult(message);
       if (onManageComplete) {
         await onManageComplete();
@@ -1135,7 +1135,7 @@ export function ManagePlugins({
     } catch (error_0) {
       setIsProcessing(false);
       const errorMessage = error_0 instanceof Error ? error_0.message : String(error_0);
-      setProcessError(`Failed to ${operation}: ${errorMessage}`);
+      setProcessError(`${operation} 失败：${errorMessage}`);
       logError(toError(error_0));
     }
   };

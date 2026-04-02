@@ -45,7 +45,7 @@ function getMessagePreview(messages: InProcessTeammateTaskState['messages']): st
       if ('type' in block && block.type === 'tool_use' && 'name' in block) {
         // Try to show meaningful info from tool input
         const input = 'input' in block ? block.input as Record<string, unknown> : null;
-        let toolLine = `Using ${block.name}…`;
+        let toolLine = `正在使用 ${block.name}…`;
         if (input) {
           // Look for common descriptive fields
           const desc = input.description as string | undefined || input.prompt as string | undefined || input.command as string | undefined || input.query as string | undefined || input.pattern as string | undefined;

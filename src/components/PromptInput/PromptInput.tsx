@@ -1623,7 +1623,7 @@ function PromptInput({
         onImagePaste(imageData.base64, imageData.mediaType);
       } else {
         const shortcutDisplay = getShortcutDisplay('chat:imagePaste', 'Chat', 'ctrl+v');
-        const message = env.isSSH() ? "No image found in clipboard. You're SSH'd; try scp?" : `No image found in clipboard. Use ${shortcutDisplay} to paste images.`;
+        const message = env.isSSH() ? "剪贴板中未找到图片。您正在 SSH 连接中，请尝试使用 scp？" : `剪贴板中未找到图片。使用 ${shortcutDisplay} 粘贴图片。`;
         addNotification({
           key: 'no-image-in-clipboard',
           text: message,
@@ -2034,12 +2034,12 @@ function PromptInput({
     });
     setShowModelPicker(false);
     const effectiveFastMode = (isFastMode ?? false) && !wasFastModeDisabled;
-    let message = `Model set to ${modelDisplayString(model)}`;
+    let message = `模型已设置为 ${modelDisplayString(model)}`;
     if (isBilledAsExtraUsage(model, effectiveFastMode, isOpus1mMergeEnabled())) {
-      message += ' · Billed as extra usage';
+      message += ' · 计为额外用量';
     }
     if (wasFastModeDisabled) {
-      message += ' · Fast mode OFF';
+      message += ' · 快速模式已关闭';
     }
     addNotification({
       key: 'model-switched',

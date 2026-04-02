@@ -87,7 +87,7 @@ function AskUserQuestionResultMessage(t0) {
   } = t0;
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-    t1 = <Box flexDirection="row"><Text color={getModeColor("default")}>{BLACK_CIRCLE} </Text><Text>User answered Claude's questions:</Text></Box>;
+    t1 = <Box flexDirection="row"><Text color={getModeColor("default")}>{BLACK_CIRCLE} </Text><Text>用户回答了 Claude's 的问题:</Text></Box>;
     $[0] = t1;
   } else {
     t1 = $[0];
@@ -200,7 +200,7 @@ export const AskUserQuestionTool: Tool<InputSchema, Output> = buildTool({
   renderToolUseRejectedMessage() {
     return <Box flexDirection="row" marginTop={1}>
         <Text color={getModeColor('default')}>{BLACK_CIRCLE}&nbsp;</Text>
-        <Text>User declined to answer questions</Text>
+        <Text>用户拒绝了回答问题</Text>
       </Box>;
   },
   renderToolUseErrorMessage() {

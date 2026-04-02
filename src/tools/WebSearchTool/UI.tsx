@@ -44,10 +44,10 @@ export function renderToolUseMessage({
   }
   if (verbose) {
     if (allowed_domains && allowed_domains.length > 0) {
-      message += `, only allowing domains: ${allowed_domains.join(', ')}`;
+      message += `，仅允许域名：${allowed_domains.join(', ')}`;
     }
     if (blocked_domains && blocked_domains.length > 0) {
-      message += `, blocking domains: ${blocked_domains.join(', ')}`;
+      message += `，屏蔽域名：${blocked_domains.join(', ')}`;
     }
   }
   return message;

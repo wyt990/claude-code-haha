@@ -415,7 +415,7 @@ function TaskOutputResultDisplay(t0) {
       if (verbose) {
         let t3;
         if ($[9] !== lineCount || $[10] !== task.description) {
-          t3 = <Text>{task.description} ({lineCount} lines)</Text>;
+          t3 = <Text>{task.description}（{lineCount} 行）</Text>;
           $[9] = lineCount;
           $[10] = task.description;
           $[11] = t3;
@@ -445,7 +445,7 @@ function TaskOutputResultDisplay(t0) {
         }
         let t6;
         if ($[18] !== task.error) {
-          t6 = task.error && <Box flexDirection="column" marginTop={1}><Text color="error" bold={true}>Error:</Text><Box paddingLeft={2}><Text color="error">{task.error}</Text></Box></Box>;
+          t6 = task.error && <Box flexDirection="column" marginTop={1}><Text color="error" bold={true}>错误：</Text><Box paddingLeft={2}><Text color="error">{task.error}</Text></Box></Box>;
           $[18] = task.error;
           $[19] = t6;
         } else {
@@ -504,7 +504,7 @@ function TaskOutputResultDisplay(t0) {
     }
     let t3;
     if ($[31] === Symbol.for("react.memo_cache_sentinel")) {
-      t3 = <MessageResponse><Text dimColor={true}>Task not ready</Text></MessageResponse>;
+      t3 = <MessageResponse><Text dimColor={true}>任务未就绪</Text></MessageResponse>;
       $[31] = t3;
     } else {
       t3 = $[31];
@@ -532,7 +532,7 @@ function TaskOutputResultDisplay(t0) {
     }
     let t5;
     if ($[38] !== expandShortcut || $[39] !== task.output || $[40] !== verbose) {
-      t5 = !verbose && task.output && <Text dimColor={true}>{"     "}({expandShortcut} to expand)</Text>;
+      t5 = !verbose && task.output && <Text dimColor={true}>{"     "}（按 {expandShortcut} 展开）</Text>;
       $[38] = expandShortcut;
       $[39] = task.output;
       $[40] = verbose;

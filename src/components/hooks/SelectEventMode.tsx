@@ -42,7 +42,7 @@ export function SelectEventMode(t0) {
   } else {
     t1 = $[1];
   }
-  const subtitle = `${totalHooksCount} ${t1} configured`;
+  const subtitle = `${totalHooksCount} 个${t1} 已配置`;
   let t2;
   if ($[2] !== restrictedByPolicy) {
     t2 = restrictedByPolicy && <Box flexDirection="column"><Text color="suggestion">{figures.info} Hooks Restricted by Policy</Text><Text dimColor={true}>Only hooks from managed settings can run. User-defined hooks from ~/.claude/settings.json, .claude/settings.json, and .claude/settings.local.json are blocked.</Text></Box>;

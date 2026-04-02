@@ -1073,7 +1073,7 @@ async function executeRemoteSkill(
   const skillDir = dirname(skillPath)
   const normalizedDir =
     process.platform === 'win32' ? skillDir.replace(/\\/g, '/') : skillDir
-  let finalContent = `Base directory for this skill: ${normalizedDir}\n\n${bodyContent}`
+  let finalContent = `此 skill 的基础目录：${normalizedDir}\n\n${bodyContent}`
   finalContent = finalContent.replace(/\$\{CLAUDE_SKILL_DIR\}/g, normalizedDir)
   finalContent = finalContent.replace(
     /\$\{CLAUDE_SESSION_ID\}/g,

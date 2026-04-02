@@ -5,11 +5,12 @@
 // deps is a separate sweep; this ref preserves the status quo.
 /// <reference lib="dom" />
 
+import type { HLJSApi } from 'highlight.js'
 import { extname } from 'path'
 
 export type CliHighlight = {
-  highlight: typeof import('cli-highlight').highlight
-  supportsLanguage: typeof import('cli-highlight').supportsLanguage
+  highlight: (code: string, options: { language: string }) => string
+  supportsLanguage: (lang: string) => boolean
 }
 
 // One promise shared by Fallback.tsx, markdown.ts, events.ts, getLanguageName.
@@ -18,17 +19,49 @@ export type CliHighlight = {
 // faulted in.
 let cliHighlightPromise: Promise<CliHighlight | null> | undefined
 
-let loadedGetLanguage: typeof import('highlight.js').getLanguage | undefined
+let loadedGetLanguage: HLJSApi['getLanguage'] | undefined
+
+function supportsLanguageFromHighlightJs(
+  getLanguage: HLJSApi['getLanguage'],
+): (lang: string) => boolean {
+  return (lang: string) => {
+    const t = typeof lang === 'string' ? lang.trim() : ''
+    if (!t) return false
+    return Boolean(getLanguage(t))
+  }
+}
 
 async function loadCliHighlight(): Promise<CliHighlight | null> {
   try {
-    const cliHighlight = await import('cli-highlight')
-    // cache hit — cli-highlight already loaded highlight.js
-    const highlightJs = await import('highlight.js')
-    loadedGetLanguage = highlightJs.getLanguage
+    const cliHighlightMod = await import('cli-highlight')
+    const cliHighlight = cliHighlightMod as typeof cliHighlightMod & {
+      default?: typeof cliHighlightMod
+    }
+    const ns = cliHighlight.default ?? cliHighlight
+    // cache hit — cli-highlight (or stub) already pulled highlight.js
+    const highlightJsMod = await import('highlight.js')
+    const hljs: HLJSApi = highlightJsMod.default
+    loadedGetLanguage = hljs.getLanguage
+
+    const hl =
+      typeof ns.highlight === 'function'
+        ? ns.highlight
+        : typeof cliHighlightMod.highlight === 'function'
+          ? cliHighlightMod.highlight
+          : null
+    if (!hl) {
+      return null
+    }
+
+    const fromPkg = ns.supportsLanguage ?? cliHighlightMod.supportsLanguage
+    const supportsLanguage =
+      typeof fromPkg === 'function'
+        ? (lang: string) => (fromPkg as (l: string) => boolean)(lang)
+        : supportsLanguageFromHighlightJs(hljs.getLanguage)
+
     return {
-      highlight: cliHighlight.highlight,
-      supportsLanguage: cliHighlight.supportsLanguage,
+      highlight: hl as CliHighlight['highlight'],
+      supportsLanguage,
     }
   } catch {
     return null

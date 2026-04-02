@@ -75,7 +75,10 @@ export function formatToken(
       }
       let language = 'plaintext'
       if (token.lang) {
-        if (highlight.supportsLanguage(token.lang)) {
+        if (
+          typeof highlight.supportsLanguage === 'function' &&
+          highlight.supportsLanguage(token.lang)
+        ) {
           language = token.lang
         } else {
           logForDebugging(
