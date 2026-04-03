@@ -37,7 +37,8 @@ die() {
 }
 
 log() {
-  printf '%s\n' "[install] $*"
+  # Must go to stderr: stdout is used for captured command output (e.g. url="$(pick_download_url …)").
+  printf '%s\n' "[install] $*" >&2
 }
 
 debug() {
