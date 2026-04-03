@@ -90,12 +90,13 @@ pick_download_url() {
   if command -v jq >/dev/null 2>&1; then
     # Regex must NOT use "\\(" around $slug — that makes a literal "(" then ")" tries to
     # close a regex group → jq: "Regex failure: unmatched close parenthesis".
+    # max_by(.name): same release may list 100.0.1 + 100.0.2 assets — take lexicographically newest name
     echo "$json" |
       jq -r --arg slug "$slug" '
-        .assets[]
-        | select((.name | type) == "string" and (.name | test("^claudecode-\($slug)-.+\\.tar\\.gz$")))
-        | .browser_download_url' |
-      head -n1
+        [ .assets[]
+          | select((.name | type) == "string" and (.name | test("^claudecode-\($slug)-.+\\.tar\\.gz$")))
+        ]
+        | if length == 0 then empty else max_by(.name) | .browser_download_url end'
     return 0
   fi
 
@@ -105,11 +106,15 @@ import json, re, sys
 slug = sys.argv[1]
 pat = re.compile(r'^claudecode-' + re.escape(slug) + r'-.+\.tar\.gz\$')
 data = json.load(sys.stdin)
+best = None
 for a in data.get('assets', []):
     name = a.get('name') or ''
     if pat.match(name):
-        print(a.get('browser_download_url', ''))
-        break
+        url = a.get('browser_download_url', '')
+        if not best or name > best[0]:
+            best = (name, url)
+if best:
+    print(best[1])
 " "$slug"
     return 0
   fi
@@ -118,7 +123,8 @@ for a in data.get('assets', []):
 }
 
 main() {
-  local slug url tmp tar_path inner env_example
+  # tmp must NOT be local: EXIT trap runs after main returns; with set -u, local tmp is gone → "tmp: unbound variable"
+  local slug url tar_path inner env_example
   slug="$(detect_archive_slug)"
   echo "[install] GitHub repo: ${GITHUB_REPO}"
   echo "[install] Detected archive platform: ${slug}"
