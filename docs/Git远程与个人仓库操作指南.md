@@ -74,7 +74,7 @@ git push -u origin main
 ```bash
 git status
 git add .
-git commit -m "已修复完所有错误"
+git commit -m "已修复所有错误"
 
 # 已设置过 -u 后可直接：
 git push
@@ -214,17 +214,17 @@ git tag -a "v100.0.0-local" -m "Release v100.0.0-local"
 git push origin "v100.0.0-local"
 
 # 创建 Release 并上传 dist/releases 下全部 .tar.gz（不含目录本身）
-gh release create "v100.0.0-local" \
+gh release create "v100.0.1-local" \
   dist/releases/*.tar.gz \
-  --title "v100.0.0-local" \
-  --notes "汉化及修复大部分错误"
+  --title "v100.0.1-local" \
+  --notes "修复完所有错误"
 
 # 每次指定仓库发布
-gh release create "v100.0.0-local" \
+gh release create "v100.0.1-local" \
   dist/releases/*.tar.gz \
   --repo wyt990/claude-code-haha \
-  --title "v100.0.0-local" \
-  --notes "汉化及修复大部分错误"
+  --title "v100.0.1-local" \
+  --notes "修复完所有错误"
 ```
 
 若**暂不推标签**，也可只创建 Release（不关联 tag 的做法较少用，一般仍建议有 tag）：
