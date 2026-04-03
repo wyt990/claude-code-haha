@@ -84,7 +84,7 @@ const MAX_FILE_SIZE_BYTES = 500 * 1024 * 1024 // 500MB
 /**
  * Result type for retry operations - signals whether to continue retrying
  */
-type RetryResult<T> = { done: true; value: T } | { done: false; error?: string }
+type RetryResult<T> = { done: true; value: T } | { done: false; error?: string; retryAfterMs?: number }
 
 /**
  * Executes an operation with exponential backoff retry logic
@@ -103,11 +103,11 @@ async function retryWithBackoff<T>(
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const result = await attemptFn(attempt)
 
-    if (result.done) {
+    if (result.done === true) {
       return result.value
+    } else {
+      lastError = result.error || `${operation} failed`
     }
-
-    lastError = result.error || `${operation} failed`
     logDebug(
       `${operation} attempt ${attempt}/${MAX_RETRIES} failed: ${lastError}`,
     )

@@ -25,6 +25,7 @@ export type DirectMessageResult =
       success: false
       error: 'no_team_context' | 'unknown_recipient'
       recipientName?: string
+      message?: string
     }
 
 type WriteToMailboxFn = (

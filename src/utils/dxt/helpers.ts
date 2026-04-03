@@ -17,10 +17,10 @@ export async function validateManifest(
   const parseResult = McpbManifestSchema.safeParse(manifestJson)
 
   if (!parseResult.success) {
-    const errors = parseResult.error.flatten()
+    const errors = (parseResult as any).error.flatten()
     const errorMessages = [
       ...Object.entries(errors.fieldErrors).map(
-        ([field, errs]) => `${field}: ${errs?.join(', ')}`,
+        ([field, errs]) => `${field}: ${(errs as string[])?.join(', ')}`,
       ),
       ...(errors.formErrors || []),
     ]

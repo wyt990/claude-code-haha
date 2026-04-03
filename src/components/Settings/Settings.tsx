@@ -8,6 +8,7 @@ import { useTerminalSize } from '../../hooks/useTerminalSize.js';
 import { useIsInsideModal, useModalOrTerminalSize } from '../../context/modalContext.js';
 import { Pane } from '../design-system/Pane.js';
 import { Tabs, Tab } from '../design-system/Tabs.js';
+import { Box } from '../../ink.js';
 import { Status, buildDiagnostics } from './Status.js';
 import { Config } from './Config.js';
 import { Usage } from './Usage.js';
@@ -95,7 +96,7 @@ export function Settings(t0) {
   }
   let t7;
   if ($[13] !== contentHeight) {
-    t7 = false ? [<Tab key="gates" title="Gates"><Gates onOwnsEscChange={setGatesOwnsEsc} contentHeight={contentHeight} /></Tab>] : [];
+    t7 = false ? [<Tab key="gates" title="Gates"><Box /></Tab>] : [];
     $[13] = contentHeight;
     $[14] = t7;
   } else {

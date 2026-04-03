@@ -86,6 +86,7 @@ import { getProjectRoot } from '../bootstrap/state.js'
 import { formatCommandsWithinBudget } from '../tools/SkillTool/prompt.js'
 import { getContextWindowForModel } from './context.js'
 import type { DiscoverySignal } from '../services/skillSearch/signals.js'
+import type { SkillSearchPrefetchModule } from '../services/skillSearch/prefetch.js'
 // Conditional require for DCE. All skill-search string literals that would
 // otherwise leak into external builds live inside these modules. The only
 // surfaces in THIS file are: the maybe() call (gated via spread below) and
@@ -96,8 +97,7 @@ const skillSearchModules = feature('EXPERIMENTAL_SKILL_SEARCH')
   ? {
       featureCheck:
         require('../services/skillSearch/featureCheck.js') as typeof import('../services/skillSearch/featureCheck.js'),
-      prefetch:
-        require('../services/skillSearch/prefetch.js') as typeof import('../services/skillSearch/prefetch.js'),
+      prefetch: require('../services/skillSearch/prefetch.js') as SkillSearchPrefetchModule,
     }
   : null
 const autoModeStateModule = feature('TRANSCRIPT_CLASSIFIER')
@@ -274,7 +274,7 @@ const MAX_MEMORY_LINES = 200
 // readFileInRange's truncateOnByteLimit option.  Truncation means the
 // most-relevant memory still surfaces: the frontmatter + opening context
 // is usually what matters.
-const MAX_MEMORY_BYTES = 4096
+const MAX_MEMORY_BYTES = 32768
 
 export const RELEVANT_MEMORIES_CONFIG = {
   // Per-turn cap (5 × 4KB = 20KB) bounds a single injection, but over a
@@ -715,6 +715,12 @@ export type Attachment =
       warningCount: number
       sample: string
     }
+  | {
+      type: 'pen_mode_enter'
+    }
+  | {
+      type: 'pen_mode_exit'
+    }
 
 export type TeammateMailboxAttachment = {
   type: 'teammate_mailbox'
@@ -999,7 +1005,7 @@ export async function getAttachments(
     ...userAttachmentResults.flat(),
     ...threadAttachmentResults.flat(),
     ...mainThreadAttachmentResults.flat(),
-  ].filter(a => a !== undefined && a !== null)
+  ].filter((a): a is Attachment => a !== undefined && a !== null)
 }
 
 async function maybe<A>(label: string, f: () => Promise<A[]>): Promise<A[]> {
@@ -2768,22 +2774,22 @@ export function extractAtMentionedFiles(content: string): string[] {
   const regularMatches: string[] = []
 
   // Extract quoted mentions first (skip agent mentions like @"code-reviewer (agent)")
-  let match
-  while ((match = quotedAtMentionRegex.exec(content)) !== null) {
-    if (match[2] && !match[2].endsWith(' (agent)')) {
-      quotedMatches.push(match[2]) // The content inside quotes
+  let quotedExec: RegExpExecArray | null
+  while ((quotedExec = quotedAtMentionRegex.exec(content)) !== null) {
+    if (quotedExec[2] && !quotedExec[2].endsWith(' (agent)')) {
+      quotedMatches.push(quotedExec[2]) // The content inside quotes
     }
   }
 
-  // Extract regular mentions
-  const regularMatchArray = content.match(regularAtMentionRegex) || []
-  regularMatchArray.forEach(match => {
-    const filename = match.slice(match.indexOf('@') + 1)
+  // Extract regular mentions (matchAll avoids TS inferring match()+/g as never[])
+  for (const m of content.matchAll(regularAtMentionRegex)) {
+    const fullMatch = m[0] as string
+    const filename = fullMatch.slice(fullMatch.indexOf('@') + 1)
     // Don't include if it starts with a quote (already handled as quoted)
     if (!filename.startsWith('"')) {
       regularMatches.push(filename)
     }
-  })
+  }
 
   // Combine and deduplicate
   return uniq([...quotedMatches, ...regularMatches])

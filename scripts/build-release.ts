@@ -1,16 +1,23 @@
 #!/usr/bin/env bun
 /**
- * 多平台编译并打 tar 包，版本号来自 src/constants/version.ts（与运行时 MACRO.VERSION 同源）。
+ * 多平台编译并打 gzip 压缩的 tar 包（.tar.gz），版本号来自 src/constants/version.ts（与运行时 MACRO.VERSION 同源）。
  *
  * 用法：
  *   bun run scripts/build-release.ts
  *   bun run scripts/build-release.ts --no-sync-package
  *   bun run scripts/build-release.ts --only windowsX64,linuxX64
  *
- * 产出：dist/releases/claudecode-{平台标识}-{版本}.tar（内含单个可执行文件）
+ * 产出：dist/releases/claudecode-{平台标识}-{版本}.tar.gz（内含可执行文件 + 仓库根目录 .env.example，若存在）
  */
 
-import { mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { CLAUDE_CODE_VERSION } from '../src/constants/version.js'
@@ -21,7 +28,7 @@ const OUT_DIR = join(ROOT, 'dist', 'releases')
 
 type Target = {
   bunTarget: string
-  /** 用于归档文件名，例如 windowsX64 → claudecode-windowsX64-1.2.3.tar */
+  /** 用于归档文件名，例如 windowsX64 → claudecode-windowsX64-1.2.3.tar.gz */
   archiveSlug: string
   windowsExe: boolean
 }
@@ -76,7 +83,7 @@ Options:
   -h, --help            Show this help
 
 Version source: src/constants/version.ts → CLAUDE_CODE_VERSION
-Output: dist/releases/claudecode-<slug>-<version>.tar`)
+Output: dist/releases/claudecode-<slug>-<version>.tar.gz (gzip; binary + .env.example when present)`)
       process.exit(0)
     }
   }
@@ -129,7 +136,7 @@ function main(): void {
   }
 
   console.log(
-    `[build-release] CLAUDE_CODE_VERSION=${CLAUDE_CODE_VERSION} → archives *-${ver}.tar (${targets.length} target(s))`,
+    `[build-release] CLAUDE_CODE_VERSION=${CLAUDE_CODE_VERSION} → archives *-${ver}.tar.gz (${targets.length} target(s))`,
   )
 
   for (const t of targets) {
@@ -138,7 +145,7 @@ function main(): void {
     rmSync(stage, { recursive: true, force: true })
     mkdirSync(stage, { recursive: true })
     const binaryPath = join(stage, binaryName)
-    const archiveName = `claudecode-${t.archiveSlug}-${ver}.tar`
+    const archiveName = `claudecode-${t.archiveSlug}-${ver}.tar.gz`
     const archivePath = join(OUT_DIR, archiveName)
 
     console.log(`\n[build-release] ${t.bunTarget} → ${archiveName}`)
@@ -161,8 +168,19 @@ function main(): void {
       process.exit(1)
     }
 
+    const envExampleSrc = join(ROOT, '.env.example')
+    const tarMembers = [binaryName]
+    if (existsSync(envExampleSrc)) {
+      copyFileSync(envExampleSrc, join(stage, '.env.example'))
+      tarMembers.push('.env.example')
+    } else {
+      console.warn(
+        `[build-release] ${envExampleSrc} not found; archive will only contain the binary`,
+      )
+    }
+
     rmSync(archivePath, { force: true })
-    run(['tar', '-cf', archivePath, '-C', stage, binaryName], ROOT)
+    run(['tar', '-czf', archivePath, '-C', stage, ...tarMembers], ROOT)
     rmSync(stage, { recursive: true, force: true })
     console.log(`[build-release] Wrote ${archivePath}`)
   }

@@ -898,7 +898,7 @@ async function callInner(
         resolvedFilePath,
         parsedRange ?? undefined,
       )
-      if (!extractResult.success) {
+      if (extractResult.success === false) {
         throw new Error(extractResult.error.message)
       }
       logEvent('tengu_pdf_page_extraction', {
@@ -967,7 +967,7 @@ async function callInner(
           pageCount: extractResult.data.file.count,
           fileSize: extractResult.data.file.originalSize,
         })
-      } else {
+      } else if (extractResult.success === false) {
         logEvent('tengu_pdf_page_extraction', {
           success: false,
           available: extractResult.error.reason !== 'unavailable',
@@ -985,7 +985,7 @@ async function callInner(
     }
 
     const readResult = await readPDF(resolvedFilePath)
-    if (!readResult.success) {
+    if (readResult.success === false) {
       throw new Error(readResult.error.message)
     }
     const pdfData = readResult.data
@@ -1156,14 +1156,10 @@ export async function readImageWithTokenBudget(
       // Fallback: heavily compressed version from the SAME buffer
       try {
         const sharpModule = await import('sharp')
-        const sharp =
-          (
-            sharpModule as {
-              default?: typeof sharpModule
-            } & typeof sharpModule
-          ).default || sharpModule
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        const sharpFn = (sharpModule as unknown as { default: (input: Buffer) => { resize: (w: number, h: number, opts: unknown) => { jpeg: (opts: unknown) => { toBuffer: () => Promise<Buffer> } } } }).default
 
-        const fallbackBuffer = await sharp(imageBuffer)
+        const fallbackBuffer = await sharpFn(imageBuffer)
           .resize(400, 400, {
             fit: 'inside',
             withoutEnlargement: true,

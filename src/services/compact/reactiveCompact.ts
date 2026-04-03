@@ -1,5 +1,16 @@
 /** Loosely matches `CompactionResult` from `./compact.js` (avoid circular import). */
-type CompactionResultStub = Record<string, unknown>
+type CompactionResultStub = {
+  boundaryMarker?: unknown
+  summaryMessages?: unknown
+  attachments?: unknown
+  hookResults?: unknown
+  messagesToKeep?: unknown
+  userDisplayMessage?: string
+  preCompactTokenCount?: number
+  postCompactTokenCount?: number
+  truePostCompactTokenCount?: number
+  compactionUsage?: unknown
+}
 
 export function isReactiveOnlyMode(): boolean {
   return false

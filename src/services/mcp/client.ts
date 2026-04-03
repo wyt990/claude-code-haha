@@ -86,7 +86,10 @@ import {
   truncateMcpContentIfNeeded,
 } from '../../utils/mcpValidation.js'
 import { WebSocketTransport } from '../../utils/mcpWebSocketTransport.js'
-import { memoizeWithLRU } from '../../utils/memoize.js'
+import {
+  memoizeWithLRU,
+  type LRUMemoizedFunction,
+} from '../../utils/memoize.js'
 import { getWebSocketTLSOptions } from '../../utils/mtls.js'
 import {
   getProxyFetchOptions,
@@ -139,6 +142,7 @@ import type {
   ConnectedMCPServer,
   MCPServerConnection,
   McpSdkServerConfig,
+  McpStdioServerConfig,
   ScopedMcpServerConfig,
   ServerResource,
 } from './types.js'
@@ -607,21 +611,20 @@ export const connectToServer = memoize(
   ): Promise<MCPServerConnection> => {
     const connectStartTime = Date.now()
     let inProcessServer:
-      | { connect(t: Transport): Promise<void>; close(): Promise<void> }
+      | { connect(t: Transport): Promise<void>; close?: () => Promise<void> }
       | undefined
     try {
       let transport
-
       // If we have the session ingress JWT, we will connect via the session ingress rather than
       // to remote MCP's directly.
       const sessionIngressToken = getSessionIngressAuthToken()
 
       if (serverRef.type === 'sse') {
         // Create an auth provider for this server
-        const authProvider = new ClaudeAuthProvider(name, serverRef)
+        const authProvider = new ClaudeAuthProvider(name, serverRef as any)
 
         // Get combined headers (static + dynamic)
-        const combinedHeaders = await getMcpServerHeaders(name, serverRef)
+        const combinedHeaders = await getMcpServerHeaders(name, serverRef as any)
 
         // Use the auth provider with SSEClientTransport
         const transportOptions: SSEClientTransportOptions = {
@@ -902,10 +905,15 @@ export const connectToServer = memoize(
           transportOptions,
         )
         logMCPDebug(name, `claude.ai proxy transport created successfully`)
-      } else if (
-        (serverRef.type === 'stdio' || !serverRef.type) &&
-        isClaudeInChromeMCPServer(name)
-      ) {
+      } else {
+        // Remaining configs are stdio-shaped (optional `type`) or unsupported.
+        // `ScopedMcpServerConfig` is a union intersected with `scope`; exhaustiveness
+        // checks here otherwise collapse `serverRef` to `never` after the branches above.
+        const sr = serverRef as ScopedMcpServerConfig
+        if (
+          (sr.type === 'stdio' || sr.type === undefined) &&
+          isClaudeInChromeMCPServer(name)
+        ) {
         // Run the Chrome MCP server in-process to avoid spawning a ~325 MB subprocess
         const { createChromeContext } = await import(
           '../../utils/claudeInChrome/mcpServer.js'
@@ -916,17 +924,18 @@ export const connectToServer = memoize(
         const { createLinkedTransportPair } = await import(
           './InProcessTransport.js'
         )
-        const context = createChromeContext(serverRef.env)
+        const stdioRef = sr as McpStdioServerConfig
+        const context = createChromeContext(stdioRef.env)
         inProcessServer = createClaudeForChromeMcpServer(context)
         const [clientTransport, serverTransport] = createLinkedTransportPair()
         await inProcessServer.connect(serverTransport)
         transport = clientTransport
         logMCPDebug(name, `In-process Chrome MCP server started`)
-      } else if (
-        feature('CHICAGO_MCP') &&
-        (serverRef.type === 'stdio' || !serverRef.type) &&
-        isComputerUseMCPServer!(name)
-      ) {
+        } else if (
+          feature('CHICAGO_MCP') &&
+          (sr.type === 'stdio' || sr.type === undefined) &&
+          isComputerUseMCPServer!(name)
+        ) {
         // Run the Computer Use MCP server in-process — same rationale as
         // Chrome above. The package's CallTool handler is a stub; real
         // dispatch goes through wrapper.tsx's .call() override.
@@ -941,23 +950,25 @@ export const connectToServer = memoize(
         await inProcessServer.connect(serverTransport)
         transport = clientTransport
         logMCPDebug(name, `In-process Computer Use MCP server started`)
-      } else if (serverRef.type === 'stdio' || !serverRef.type) {
+        } else if (sr.type === 'stdio' || sr.type === undefined) {
+        const stdioRef = sr as McpStdioServerConfig
         const finalCommand =
-          process.env.CLAUDE_CODE_SHELL_PREFIX || serverRef.command
+          process.env.CLAUDE_CODE_SHELL_PREFIX || stdioRef.command
         const finalArgs = process.env.CLAUDE_CODE_SHELL_PREFIX
-          ? [[serverRef.command, ...serverRef.args].join(' ')]
-          : serverRef.args
+          ? [[stdioRef.command, ...stdioRef.args].join(' ')]
+          : stdioRef.args
         transport = new StdioClientTransport({
           command: finalCommand,
           args: finalArgs,
           env: {
             ...subprocessEnv(),
-            ...serverRef.env,
+            ...stdioRef.env,
           } as Record<string, string>,
           stderr: 'pipe', // prevents error output from the MCP server from printing to the UI
         })
-      } else {
-        throw new Error(`Unsupported server type: ${serverRef.type}`)
+        } else {
+          throw new Error(`Unsupported server type: ${sr.type}`)
+        }
       }
 
       // Set up stderr logging for stdio transport before connecting in case there are any stderr
@@ -1995,7 +2006,7 @@ export const fetchToolsForClient = memoizeWithLRU(
   },
   (client: MCPServerConnection) => client.name,
   MCP_FETCH_CACHE_SIZE,
-)
+) as LRUMemoizedFunction<[MCPServerConnection], Promise<Tool[]>>
 
 export const fetchResourcesForClient = memoizeWithLRU(
   async (client: MCPServerConnection): Promise<ServerResource[]> => {
@@ -2028,7 +2039,7 @@ export const fetchResourcesForClient = memoizeWithLRU(
   },
   (client: MCPServerConnection) => client.name,
   MCP_FETCH_CACHE_SIZE,
-)
+) as LRUMemoizedFunction<[MCPServerConnection], Promise<ServerResource[]>>
 
 export const fetchCommandsForClient = memoizeWithLRU(
   async (client: MCPServerConnection): Promise<Command[]> => {
@@ -2104,7 +2115,7 @@ export const fetchCommandsForClient = memoizeWithLRU(
   },
   (client: MCPServerConnection) => client.name,
   MCP_FETCH_CACHE_SIZE,
-)
+) as LRUMemoizedFunction<[MCPServerConnection], Promise<Command[]>>
 
 /**
  * Call an IDE tool directly as an RPC

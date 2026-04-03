@@ -117,11 +117,8 @@ export function createStreamAccumulator(): StreamAccumulatorState {
   return { byMessage: new Map(), scopeToMessage: new Map() }
 }
 
-function scopeKey(m: {
-  session_id: string
-  parent_tool_use_id: string | null
-}): string {
-  return `${m.session_id}:${m.parent_tool_use_id ?? ''}`
+function scopeKey(m: { session_id?: string; parent_tool_use_id?: string | null }): string {
+  return `${m.session_id ?? ''}:${m.parent_tool_use_id ?? ''}`
 }
 
 /**
@@ -155,12 +152,12 @@ export function accumulateStreamEvents(
         if (prevId) state.byMessage.delete(prevId)
         state.scopeToMessage.set(scopeKey(msg), id)
         state.byMessage.set(id, [])
-        out.push(msg)
+        out.push(msg as unknown as EventPayload)
         break
       }
       case 'content_block_delta': {
         if (msg.event.delta.type !== 'text_delta') {
-          out.push(msg)
+          out.push(msg as unknown as EventPayload)
           break
         }
         const messageId = state.scopeToMessage.get(scopeKey(msg))
@@ -170,7 +167,7 @@ export function accumulateStreamEvents(
           // or message_start was in a prior buffer that got dropped). Pass
           // through raw — can't produce a full-so-far snapshot without the
           // prior chunks anyway.
-          out.push(msg)
+          out.push(msg as unknown as EventPayload)
           break
         }
         const chunks = (blocks[msg.event.index] ??= [])
@@ -196,7 +193,7 @@ export function accumulateStreamEvents(
         break
       }
       default:
-        out.push(msg)
+        out.push(msg as unknown as EventPayload)
     }
   }
   return out
@@ -210,8 +207,8 @@ export function accumulateStreamEvents(
 export function clearStreamAccumulatorForMessage(
   state: StreamAccumulatorState,
   assistant: {
-    session_id: string
-    parent_tool_use_id: string | null
+    session_id?: string
+    parent_tool_use_id?: string | null
     message: { id: string }
   },
 ): void {
@@ -222,7 +219,7 @@ export function clearStreamAccumulatorForMessage(
   }
 }
 
-type RequestResult = { ok: true } | { ok: false; retryAfterMs?: number }
+type RequestResult = { ok: true; retryAfterMs?: number } | { ok: false; retryAfterMs?: number }
 
 type WorkerEvent = {
   payload: EventPayload
@@ -745,7 +742,11 @@ export class CCRClient {
     }
     await this.flushStreamEventBuffer()
     if (message.type === 'assistant') {
-      clearStreamAccumulatorForMessage(this.streamTextAccumulator, message)
+      clearStreamAccumulatorForMessage(this.streamTextAccumulator, message as unknown as {
+        session_id?: string
+        parent_tool_use_id?: string | null
+        message: { id: string }
+      })
     }
     await this.eventUploader.enqueue(this.toClientEvent(message))
   }

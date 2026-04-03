@@ -1223,9 +1223,9 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
       // transient failures (network, 5xx, rate limit). Don't clobber a valid
       // stored subscription with null — fall back to the existing value.
       subscriptionType:
-        tokens.subscriptionType ?? existingOauth?.subscriptionType ?? null,
+        tokens.subscriptionType ?? (existingOauth as any)?.subscriptionType ?? null,
       rateLimitTier:
-        tokens.rateLimitTier ?? existingOauth?.rateLimitTier ?? null,
+        tokens.rateLimitTier ?? (existingOauth as any)?.rateLimitTier ?? null,
     }
 
     const updateStatus = secureStorage.update(storageData)
@@ -1288,7 +1288,7 @@ export const getClaudeAIOAuthTokens = memoize((): OAuthTokens | null => {
     const storageData = secureStorage.read()
     const oauthData = storageData?.claudeAiOauth
 
-    if (!oauthData?.accessToken) {
+    if (!(oauthData as any)?.accessToken) {
       return null
     }
 
@@ -1411,7 +1411,7 @@ export async function getClaudeAIOAuthTokensAsync(): Promise<OAuthTokens | null>
     const secureStorage = getSecureStorage()
     const storageData = await secureStorage.readAsync()
     const oauthData = storageData?.claudeAiOauth
-    if (!oauthData?.accessToken) {
+    if (!(oauthData as any)?.accessToken) {
       return null
     }
     return oauthData

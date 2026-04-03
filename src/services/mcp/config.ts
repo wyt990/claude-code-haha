@@ -1350,6 +1350,7 @@ export function parseMcpConfig(params: {
     // Check for Windows-specific npx usage without cmd wrapper
     if (
       getPlatform() === 'windows' &&
+      'command' in configToCheck &&
       (!configToCheck.type || configToCheck.type === 'stdio') &&
       (configToCheck.command === 'npx' ||
         configToCheck.command.endsWith('\\npx') ||

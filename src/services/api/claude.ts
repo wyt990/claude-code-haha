@@ -455,7 +455,7 @@ function configureEffortParams(
     betas.push(EFFORT_BETA_HEADER)
   } else if (typeof effortValue === 'string') {
     // Send string effort level as is
-    outputConfig.effort = effortValue
+    outputConfig.effort = effortValue as 'low' | 'medium' | 'high' | 'max'
     betas.push(EFFORT_BETA_HEADER)
   } else if (process.env.USER_TYPE === 'ant') {
     // Numeric effort override - ant-only (uses anthropic_internal)
@@ -870,7 +870,7 @@ export async function* executeNonStreamingRequest(
               model: normalizeModelStringForAPI(adjustedParams.model),
             },
             retryOptions.signal,
-            clientOptions.fetchOverride,
+            clientOptions.fetchOverride as typeof fetch,
           )
         } catch (err) {
           if (err instanceof APIUserAbortError) throw err
@@ -971,9 +971,14 @@ function getPreviousRequestIdFromMessages(
 }
 
 function isMedia(
-  block: BetaContentBlockParam,
+  block: BetaContentBlockParam | BetaToolResultBlockParam['content'][number],
 ): block is BetaImageBlockParam | BetaRequestDocumentBlock {
-  return block.type === 'image' || block.type === 'document'
+  return (
+    typeof block === 'object' &&
+    block !== null &&
+    'type' in block &&
+    (block.type === 'image' || block.type === 'document')
+  )
 }
 
 function isToolResult(
@@ -1746,8 +1751,8 @@ async function* queryModel(
         enablePromptCaching,
         options.querySource,
         useCachedMC,
-        consumedCacheEdits,
-        consumedPinnedEdits,
+        consumedCacheEdits as CachedMCEditsBlock | null,
+        consumedPinnedEdits as CachedMCPinnedEdits[],
         options.skipCacheWrite,
       ),
       system,
@@ -1854,7 +1859,7 @@ async function* queryModel(
           const pack = await openAICompatStreamingRequest(
             { ...params, stream: true },
             signal,
-            options.fetchOverride,
+            options.fetchOverride as typeof fetch,
           )
           queryCheckpoint('query_response_headers_received')
           streamRequestId = pack.requestId ?? randomUUID()
@@ -2133,7 +2138,14 @@ async function* queryModel(
                 })
                 throw new Error('Content block is not a connector_text block')
               }
-              contentBlock.connector_text += delta.connector_text
+              {
+                const cur =
+                  contentBlock.connector_text ?? contentBlock.text ?? ''
+                const inc = delta.connector_text ?? delta.text ?? ''
+                const next = cur + inc
+                contentBlock.text = next
+                contentBlock.connector_text = next
+              }
             } else {
               switch (delta.type) {
                 case 'citations_delta':
@@ -2303,10 +2315,10 @@ async function* queryModel(
             }
 
             // Update cost
-            const costUSDForPart = calculateUSDCost(resolvedModel, usage)
+            const costUSDForPart = calculateUSDCost(resolvedModel, usage as import('@anthropic-ai/sdk/resources/beta/messages/messages.mjs').BetaUsage)
             costUSD += addToTotalSessionCost(
               costUSDForPart,
-              usage,
+              usage as import('@anthropic-ai/sdk/resources/beta/messages/messages.mjs').BetaUsage,
               options.model,
             )
 

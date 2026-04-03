@@ -2202,7 +2202,7 @@ async function* executeHooks({
 
     try {
       const jsonInputRes = getJsonInput()
-      if (!jsonInputRes.ok) {
+      if (jsonInputRes.ok === false) {
         yield {
           message: createAttachmentMessage({
             type: 'hook_error_during_execution',
@@ -2557,7 +2557,7 @@ async function* executeHooks({
         // Handle suppressOutput (skip for async responses)
         if (
           isSyncHookJSONOutput(json) &&
-          !json.suppressOutput &&
+          !(json as any).suppressOutput &&
           plainText &&
           result.status === 0
         ) {
@@ -3117,11 +3117,11 @@ async function executeHooksOutsideREPL({
           const output =
             hookEvent === 'WorktreeCreate' &&
             isSyncHookJSONOutput(json) &&
-            json.hookSpecificOutput?.hookEventName === 'WorktreeCreate'
-              ? json.hookSpecificOutput.worktreePath
-              : json.systemMessage || ''
+            (json as any).hookSpecificOutput?.hookEventName === 'WorktreeCreate'
+              ? (json as any).hookSpecificOutput.worktreePath
+              : (json as any).systemMessage || ''
           const blocked =
-            isSyncHookJSONOutput(json) && json.decision === 'block'
+            isSyncHookJSONOutput(json) && (json as any).decision === 'block'
 
           logForDebugging(`${hookName} [callback] completed successfully`)
 
@@ -3238,7 +3238,7 @@ async function executeHooksOutsideREPL({
             httpJson &&
             !isAsyncHookJSONOutput(httpJson) &&
             isSyncHookJSONOutput(httpJson) &&
-            httpJson.decision === 'block'
+            (httpJson as any).decision === 'block'
 
           // WorktreeCreate's consumer reads `output` as the bare filesystem
           // path. Command hooks provide it via stdout; http hooks provide it
@@ -3330,7 +3330,7 @@ async function executeHooksOutsideREPL({
           json &&
           !isAsyncHookJSONOutput(json) &&
           isSyncHookJSONOutput(json) &&
-          json.decision === 'block'
+          (json as any).decision === 'block'
         const blocked = result.status === 2 || !!jsonBlocked
 
         // For successful hooks (exit code 0), use stdout; for failed hooks, use stderr
@@ -4422,16 +4422,16 @@ function parseElicitationHookOutput(
     }
 
     // Check for top-level decision: 'block' (exit code 0 + JSON block)
-    if (parsed.decision === 'block' || result.blocked) {
+    if ((parsed as any).decision === 'block' || result.blocked) {
       return {
         blockingError: {
-          blockingError: parsed.reason || 'Elicitation blocked by hook',
+          blockingError: (parsed as any).reason || 'Elicitation blocked by hook',
           command: result.command,
         },
       }
     }
 
-    const specific = parsed.hookSpecificOutput
+    const specific = (parsed as any).hookSpecificOutput
     if (!specific || specific.hookEventName !== expectedEventName) {
       return {}
     }
@@ -4453,7 +4453,7 @@ function parseElicitationHookOutput(
     if (specific.action === 'decline') {
       out.blockingError = {
         blockingError:
-          parsed.reason ||
+          (parsed as any).reason ||
           (expectedEventName === 'Elicitation'
             ? 'Elicitation denied by hook'
             : 'Elicitation result blocked by hook'),

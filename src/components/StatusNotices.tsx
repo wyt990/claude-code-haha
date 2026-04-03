@@ -3,7 +3,7 @@ import * as React from 'react';
 import { use } from 'react';
 import { Box } from '../ink.js';
 import type { AgentDefinitionsResult } from '../tools/AgentTool/loadAgentsDir.js';
-import { getMemoryFiles } from '../utils/claudemd.js';
+import { getMemoryFiles, type MemoryFileInfo } from '../utils/claudemd.js';
 import { getGlobalConfig } from '../utils/config.js';
 import { getActiveNotices, type StatusNoticeContext } from '../utils/statusNoticeDefinitions.js';
 type Props = {
@@ -28,10 +28,10 @@ export function StatusNotices(t0) {
   } else {
     t2 = $[0];
   }
-  const context = {
+  const context: StatusNoticeContext = {
     config: t1,
     agentDefinitions,
-    memoryFiles: use(t2)
+    memoryFiles: use(t2) as MemoryFileInfo[],
   };
   const activeNotices = getActiveNotices(context);
   if (activeNotices.length === 0) {

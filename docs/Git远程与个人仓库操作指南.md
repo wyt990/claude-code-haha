@@ -74,7 +74,7 @@ git push -u origin main
 ```bash
 git status
 git add .
-git commit -m "翻译和修复错误"
+git commit -m "已修复完所有错误"
 
 # 已设置过 -u 后可直接：
 git push
@@ -175,9 +175,9 @@ git checkout -b feature/foo origin/feature/foo
 
 ## 10. 发布到 GitHub Releases（`dist/releases`）
 
-**说明：** **Git / `git push` 只会推送提交历史**，不会自动把 `dist/releases` 里的 `.tar` 挂到 GitHub Releases。编译产物在 **`.gitignore` 的 `dist/`** 下，通常**不进仓库**；发版时需要**单独上传**这些二进制归档。
+**说明：** **Git / `git push` 只会推送提交历史**，不会自动把 `dist/releases` 里的 `.tar.gz` 挂到 GitHub Releases。编译产物在 **`.gitignore` 的 `dist/`** 下，通常**不进仓库**；发版时需要**单独上传**这些归档。
 
-常见流程：**打一个版本标签（可选但推荐）→ 在 GitHub 上创建 Release → 把 `dist/releases/*.tar` 作为附件上传**。
+常见流程：**打一个版本标签（可选但推荐）→ 在 GitHub 上创建 Release → 把 `dist/releases/*.tar.gz` 作为附件上传**。
 
 ### 10.1 前置条件
 
@@ -188,13 +188,13 @@ git checkout -b feature/foo origin/feature/foo
    # 或只打部分平台：bun run build:release -- --only windowsX64,linuxX64
    ```
 
-   产物路径：`dist/releases/claudecode-<平台>-<版本>.tar`（版本来自 `src/constants/version.ts`）。
+   产物路径：`dist/releases/claudecode-<平台>-<版本>.tar.gz`（版本来自 `src/constants/version.ts`）。
 
 2. 代码已推送到 GitHub（`git push origin main` 等）。
 
 3. 任选一种上传方式：
    - **GitHub CLI `gh`**（推荐，一条命令可创建 Release 并附带文件）；
-   - 或浏览器打开仓库 **Releases → Draft a new release**，手动拖入 `.tar`。
+   - 或浏览器打开仓库 **Releases → Draft a new release**，手动拖入 `.tar.gz`。
 
 ### 10.2 使用 GitHub CLI（`gh`）发布
 
@@ -213,15 +213,15 @@ gh auth login
 git tag -a "v100.0.0-local" -m "Release v100.0.0-local"
 git push origin "v100.0.0-local"
 
-# 创建 Release 并上传 dist/releases 下全部 tar（不含目录本身）
+# 创建 Release 并上传 dist/releases 下全部 .tar.gz（不含目录本身）
 gh release create "v100.0.0-local" \
-  dist/releases/*.tar \
+  dist/releases/*.tar.gz \
   --title "v100.0.0-local" \
   --notes "汉化及修复大部分错误"
 
 # 每次指定仓库发布
 gh release create "v100.0.0-local" \
-  dist/releases/*.tar \
+  dist/releases/*.tar.gz \
   --repo wyt990/claude-code-haha \
   --title "v100.0.0-local" \
   --notes "汉化及修复大部分错误"
@@ -230,17 +230,17 @@ gh release create "v100.0.0-local" \
 若**暂不推标签**，也可只创建 Release（不关联 tag 的做法较少用，一般仍建议有 tag）：
 
 ```bash
-gh release create "v100.0.0-local" dist/releases/*.tar --title "..." --notes "..."
+gh release create "v100.0.0-local" dist/releases/*.tar.gz --title "..." --notes "..."
 ```
 
-**注意：** 若 shell 展开 `dist/releases/*.tar` 时无匹配文件，命令会报错；请先确认 `build:release` 已成功且路径正确。
+**注意：** 若 shell 展开 `dist/releases/*.tar.gz` 时无匹配文件，命令会报错；请先确认 `build:release` 已成功且路径正确。
 
 ### 10.3 在网页上手动发布
 
 1. 打开：`https://github.com/<用户名>/<仓库>/releases` → **Draft a new release**。  
 2. **Choose a tag**：新建标签（如 `v100.0.0-local`）或选已有标签。  
 3. 填写 Release title / 说明。  
-4. 将 `dist/releases/` 下的 `.tar` **拖拽**到附件区域（或 **Attach binaries**）。  
+4. 将 `dist/releases/` 下的 `.tar.gz` **拖拽**到附件区域（或 **Attach binaries**）。  
 5. 发布 **Publish release**。
 
 ### 10.4 与「纯 Git」的关系小结
@@ -249,7 +249,7 @@ gh release create "v100.0.0-local" dist/releases/*.tar --title "..." --notes "..
 |------|------|
 | `git push` | 推送**源码提交**，不包含被 ignore 的 `dist/releases` |
 | `git tag` + `git push origin <tag>` | 在远程标记一个**版本点**，Releases 常与之对应 |
-| `gh release create …` 或网页上传 | 把 **`.tar` 二进制**挂到 GitHub **Releases** 下载区 |
+| `gh release create …` 或网页上传 | 把 **`.tar.gz` 归档**挂到 GitHub **Releases** 下载区 |
 
 不要把个人访问令牌写进脚本提交到仓库；`gh auth login` 或系统凭据存储更安全。
 
@@ -274,7 +274,7 @@ git fetch origin           # 只抓取
 git reset --hard origin/main  # 本地 main 与远程一致（丢本地提交）
 
 # Releases（需 gh CLI，且已 build:release）
-# gh release create v1.0.0 dist/releases/*.tar --title "v1.0.0" --notes "..."
+# gh release create v1.0.0 dist/releases/*.tar.gz --title "v1.0.0" --notes "..."
 ```
 
 文档版本：随仓库维护更新；实际操作以你当前分支名为准（`main` / `master` 等）。

@@ -1054,6 +1054,18 @@ export function setTracerProvider(provider: BasicTracerProvider | null): void {
   STATE.tracerProvider = provider
 }
 
+export function getIsReplBridgeActive(): boolean {
+  return (STATE as any).replBridgeActive ?? false
+}
+
+export function isReplBridgeActive(): boolean {
+  return getIsReplBridgeActive()
+}
+
+export function setReplBridgeActive(value: boolean): void {
+  ;(STATE as any).replBridgeActive = value
+}
+
 export function getIsNonInteractiveSession(): boolean {
   return !STATE.isInteractive
 }

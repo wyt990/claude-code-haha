@@ -9,6 +9,8 @@ export type PinnedCacheEdits = {
 export type CachedMCState = {
   pinnedEdits: PinnedCacheEdits[]
   registeredTools: Set<string>
+  toolOrder?: string[]
+  deletedRefs?: Set<string>
 }
 
 export function createCachedMCState(): CachedMCState {

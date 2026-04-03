@@ -75,7 +75,7 @@ function cachedLexer(content: string): Token[] {
  * - Tables are rendered as React components with proper flexbox layout
  * - Other content is rendered as ANSI strings via formatToken
  */
-export function Markdown(props) {
+export function Markdown(props: Props) {
   const $ = _c(4);
   const settings = useSettings();
   if (settings.syntaxHighlightingDisabled) {

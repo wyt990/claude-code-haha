@@ -180,7 +180,7 @@ async function run(): Promise<void> {
   const system = getSystemPrompt(parsed.systemPrompt, parsed.appendSystemPrompt)
   const streamParams: BetaMessageStreamParams = {
     model,
-    max_tokens: 4096,
+    max_tokens: 32768,
     messages: [{ role: 'user', content: prompt }],
     ...(system !== undefined ? { system } : {}),
   }
@@ -212,7 +212,7 @@ async function run(): Promise<void> {
 
   const response = await client.messages.create({
     model,
-    max_tokens: 4096,
+    max_tokens: 32768,
     system: getSystemPrompt(parsed.systemPrompt, parsed.appendSystemPrompt),
     messages: [{ role: 'user', content: prompt }],
   })
@@ -313,7 +313,7 @@ async function runInteractive(parsed: {
     try {
       const streamParams: BetaMessageStreamParams = {
         model,
-        max_tokens: 4096,
+        max_tokens: 32768,
         system,
         messages,
       }
@@ -334,7 +334,7 @@ async function runInteractive(parsed: {
       } else {
         const response = await anthropicClient!.messages.create({
           model,
-          max_tokens: 4096,
+          max_tokens: 32768,
           system,
           messages,
         })

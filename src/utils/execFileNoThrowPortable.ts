@@ -1,4 +1,4 @@
-import { type Options as ExecaOptions, execaSync } from 'execa'
+import { type SyncOptions, execaSync } from 'execa'
 import { getCwd } from '../utils/cwd.js'
 import { slowLogging } from './slowOperations.js'
 
@@ -9,7 +9,7 @@ type ExecSyncOptions = {
   abortSignal?: AbortSignal
   timeout?: number
   input?: string
-  stdio?: ExecaOptions['stdio']
+  stdio?: SyncOptions['stdio']
 }
 
 /**
@@ -63,12 +63,14 @@ export function execSyncWithDefaults_DEPRECATED(
     abortSignal,
     timeout: finalTimeout = 10 * SECONDS_IN_MINUTE * MS_IN_SECOND,
     input,
-    stdio = ['ignore', 'pipe', 'pipe'],
+    stdio = ['ignore', 'pipe', 'pipe'] as SyncOptions['stdio'],
   } = options
 
   abortSignal?.throwIfAborted()
   using _ = slowLogging`exec: ${command.slice(0, 200)}`
   try {
+    // execaSync with shell:true - use the command as the file argument
+    // When shell is true, execa runs the command through the shell
     const result = execaSync(command, {
       env: process.env,
       maxBuffer: 1_000_000,
@@ -77,12 +79,13 @@ export function execSyncWithDefaults_DEPRECATED(
       stdio,
       shell: true, // execSync typically runs shell commands
       reject: false, // Don't throw on non-zero exit codes
-      input,
+      input: input as string | Uint8Array | undefined,
     })
     if (!result.stdout) {
       return null
     }
-    return result.stdout.trim() || null
+    const stdout = result.stdout
+    return typeof stdout === 'string' ? stdout.trim() || null : null
   } catch {
     return null
   }

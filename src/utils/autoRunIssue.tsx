@@ -80,7 +80,7 @@ export type AutoRunIssueReason = 'feedback_survey_bad' | 'feedback_survey_good';
  */
 export function shouldAutoRunIssue(reason: AutoRunIssueReason): boolean {
   // Only for Ant users
-  if ("external" !== 'ant') {
+  if (!MACRO.BUILD_IS_ANT) {
     return false;
   }
   switch (reason) {

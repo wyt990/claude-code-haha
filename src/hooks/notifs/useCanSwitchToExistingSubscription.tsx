@@ -18,7 +18,7 @@ export function useCanSwitchToExistingSubscription() {
  * Checks if the user has a subscription but is not currently logged into it.
  * This helps inform users they should run /login to access their subscription.
  */
-async function _temp2() {
+async function _temp2(): Promise<import('../../context/notifications.js').Notification | null> {
   if ((getGlobalConfig().subscriptionNoticeCount ?? 0) >= MAX_SHOW_COUNT) {
     return null;
   }

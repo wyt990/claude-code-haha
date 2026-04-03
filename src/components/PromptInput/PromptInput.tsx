@@ -1042,7 +1042,7 @@ function PromptInput({
       const directMessage = parseDirectMemberMessage(inputParam);
       if (directMessage) {
         const result = await sendDirectMemberMessage(directMessage.recipientName, directMessage.message, teamContext, writeToMailbox);
-        if (result.success) {
+        if (result.success === true) {
           addNotification({
             key: 'direct-message-sent',
             text: `Sent to @${result.recipientName}`,
@@ -1054,7 +1054,7 @@ function PromptInput({
           clearBuffer();
           resetHistory();
           return;
-        } else if (result.error === 'no_team_context') {
+        } else if (result.success === false && result.error === 'no_team_context') {
           // No team context - fall through to normal prompt submission
         } else {
           // Unknown recipient - fall through to normal prompt submission

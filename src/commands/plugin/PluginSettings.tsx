@@ -721,8 +721,16 @@ function getInitialViewState(parsedCommand: ParsedCommand): ViewState {
   }
 }
 function getInitialTab(viewState: ViewState): TabId {
-  if (viewState.type === 'manage-plugins') return 'installed';
-  if (viewState.type === 'manage-marketplaces') return 'marketplaces';
+  if (
+    typeof viewState === 'object' &&
+    viewState !== null &&
+    !Array.isArray(viewState) &&
+    'type' in viewState
+  ) {
+    const t = (viewState as { type?: unknown }).type;
+    if (t === 'manage-plugins') return 'installed';
+    if (t === 'manage-marketplaces') return 'marketplaces';
+  }
   return 'discover';
 }
 export function PluginSettings(t0) {

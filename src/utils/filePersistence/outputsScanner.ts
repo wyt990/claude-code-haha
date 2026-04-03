@@ -7,7 +7,8 @@
  * - Find modified files by comparing file mtimes against turn start time
  */
 
-import * as fs from 'fs/promises'
+import * as fs from 'fs'
+import * as fsp from 'fs/promises'
 import * as path from 'path'
 import { logForDebugging } from '../debug.js'
 import type { EnvironmentKind } from '../teleport/environments.js'
@@ -64,9 +65,9 @@ export async function findModifiedFiles(
   outputsDir: string,
 ): Promise<string[]> {
   // Use recursive flag to get all entries in one call
-  let entries: Awaited<ReturnType<typeof fs.readdir>>
+  let entries: fs.Dirent[]
   try {
-    entries = await fs.readdir(outputsDir, {
+    entries = await fsp.readdir(outputsDir, {
       withFileTypes: true,
       recursive: true,
     })
@@ -97,7 +98,7 @@ export async function findModifiedFiles(
   const statResults = await Promise.all(
     filePaths.map(async filePath => {
       try {
-        const stat = await fs.lstat(filePath)
+        const stat = await fsp.lstat(filePath)
         // Skip if it became a symlink between readdir and stat (race condition)
         if (stat.isSymbolicLink()) {
           return null

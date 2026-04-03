@@ -432,7 +432,7 @@ function roughTokenCountEstimationForBlock(
     return 2000
   }
   if (block.type === 'tool_result') {
-    return roughTokenCountEstimationForContent(block.content)
+    return roughTokenCountEstimationForContent(block.content as string | Anthropic.ContentBlock[] | Anthropic.ContentBlockParam[])
   }
   if (block.type === 'tool_use') {
     // input is the JSON the model generated — arbitrarily large (bash

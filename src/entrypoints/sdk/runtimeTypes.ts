@@ -21,3 +21,5 @@ export type Query = any
 export type SDKSession = any
 
 export type SdkMcpToolDefinition<_Schema extends AnyZodRawShape = any> = any
+
+export type EffortLevel = 'low' | 'medium' | 'high' | 'max'

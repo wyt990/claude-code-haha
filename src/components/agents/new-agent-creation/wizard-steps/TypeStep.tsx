@@ -22,7 +22,7 @@ export function TypeStep(_props) {
     updateWizardData,
     wizardData
   } = useWizard();
-  const [agentType, setAgentType] = useState(wizardData.agentType || "");
+  const [agentType, setAgentType] = useState<string>((wizardData.agentType as string) || "");
   const [error, setError] = useState(null);
   const [cursorOffset, setCursorOffset] = useState(agentType.length);
   let t0;

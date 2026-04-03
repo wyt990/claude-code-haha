@@ -210,7 +210,7 @@ function EditRejectionDiff(t0) {
   }
   return t4;
 }
-function EditRejectionBody(t0) {
+function EditRejectionBody(t0: { promise: Promise<{ patch: any; firstLine: string | null; fileContent: string | undefined }>; filePath: string; style: string; verbose: boolean }) {
   const $ = _c(7);
   const {
     promise,

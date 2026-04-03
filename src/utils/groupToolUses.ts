@@ -32,7 +32,7 @@ function getToolsWithGrouping(tools: Tools): Set<string> {
 }
 
 function getToolUseInfo(
-  msg: MessageWithoutProgress,
+  msg: NormalizedMessage,
 ): { messageId: string; toolUseId: string; toolName: string } | null {
   if (msg.type === 'assistant' && msg.message.content[0]?.type === 'tool_use') {
     const content = msg.message.content[0]
@@ -52,7 +52,7 @@ function getToolUseInfo(
  * When verbose is true, skips grouping so messages render at original positions.
  */
 export function applyGrouping(
-  messages: MessageWithoutProgress[],
+  messages: NormalizedMessage[],
   tools: Tools,
   verbose: boolean = false,
 ): GroupingResult {
@@ -67,7 +67,7 @@ export function applyGrouping(
   // First pass: group tool uses by message.id + tool name
   const groups = new Map<
     string,
-    NormalizedAssistantMessage<BetaToolUseBlock>[]
+    NormalizedAssistantMessage[]
   >()
 
   for (const msg of messages) {
@@ -75,7 +75,7 @@ export function applyGrouping(
     if (info && toolsWithGrouping.has(info.toolName)) {
       const key = `${info.messageId}:${info.toolName}`
       const group = groups.get(key) ?? []
-      group.push(msg as NormalizedAssistantMessage<BetaToolUseBlock>)
+      group.push(msg as NormalizedAssistantMessage)
       groups.set(key, group)
     }
   }
@@ -83,7 +83,7 @@ export function applyGrouping(
   // Identify valid groups (2+ items) and collect their tool use IDs
   const validGroups = new Map<
     string,
-    NormalizedAssistantMessage<BetaToolUseBlock>[]
+    NormalizedAssistantMessage[]
   >()
   const groupedToolUseIds = new Set<string>()
 

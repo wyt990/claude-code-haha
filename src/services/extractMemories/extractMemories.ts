@@ -492,7 +492,7 @@ export function initExtractMemories(): void {
         if (feature('TEAMMEM')) {
           msg.teamCount = teamCount
         }
-        appendSystemMessage?.(msg)
+        appendSystemMessage?.(msg as Parameters<NonNullable<typeof appendSystemMessage>>[0])
       }
     } catch (error) {
       // Extraction is best-effort — log but don't notify on error

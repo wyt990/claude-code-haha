@@ -46,6 +46,8 @@ const NULL_RENDERING_TYPES = [
   'current_session_memory',
   'compaction_reminder',
   'date_change',
+  'teammate_shutdown_batch',
+  'bagel_console',
 ] as const satisfies readonly Attachment['type'][]
 
 export type NullRenderingAttachmentType = (typeof NULL_RENDERING_TYPES)[number]

@@ -763,12 +763,18 @@ export const SendMessageTool: Tool<InputSchema, SendMessageToolOutput> =
             input.message,
           )
           const preview = input.summary || truncate(input.message, 50)
+          if (result.ok === true) {
+            return {
+              data: {
+                success: true,
+                message: `“${preview}” → ${input.to}`,
+              },
+            }
+          }
           return {
             data: {
-              success: result.ok,
-              message: result.ok
-                ? `“${preview}” → ${input.to}`
-                : `Failed to send to ${input.to}: ${result.error ?? 'unknown'}`,
+              success: false,
+              message: `Failed to send to ${input.to}: ${result.error ?? 'unknown'}`,
             },
           }
         }

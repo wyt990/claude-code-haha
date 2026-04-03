@@ -4,6 +4,7 @@ export type CachedMCConfig = {
   supportedModels?: string[]
   systemPromptSuggestSummaries?: boolean
   keepRecent?: number
+  triggerThreshold?: number
 }
 
 export function getCachedMCConfig(): CachedMCConfig {

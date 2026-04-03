@@ -39,7 +39,7 @@ export function SedEditPermissionRequest(t0) {
   } = sedInfo;
   let t1;
   if ($[3] !== filePath) {
-    t1 = (async () => {
+    t1 = (async (): Promise<{ oldContent: string; fileExists: boolean }> => {
       const encoding = detectEncodingForResolvedPath(filePath);
       const raw = await getFsImplementation().readFile(filePath, {
         encoding
@@ -54,7 +54,7 @@ export function SedEditPermissionRequest(t0) {
   } else {
     t1 = $[4];
   }
-  const contentPromise = t1;
+  const contentPromise: Promise<{ oldContent: string; fileExists: boolean }> = t1;
   let t2;
   if ($[5] !== contentPromise || $[6] !== props || $[7] !== sedInfo) {
     t2 = <Suspense fallback={null}><SedEditPermissionRequestInner sedInfo={sedInfo} contentPromise={contentPromise} {...props} /></Suspense>;
@@ -76,11 +76,11 @@ function _temp(e) {
     fileExists: false
   };
 }
-function SedEditPermissionRequestInner(t0) {
+function SedEditPermissionRequestInner(t0: { sedInfo: SedEditInfo; contentPromise: Promise<{ oldContent: string; fileExists: boolean }>; [key: string]: any }) {
   const $ = _c(35);
-  let contentPromise;
-  let props;
-  let sedInfo;
+  let contentPromise: Promise<{ oldContent: string; fileExists: boolean }>;
+  let props: Record<string, any>;
+  let sedInfo: SedEditInfo;
   if ($[0] !== t0) {
     ({
       sedInfo,
@@ -92,9 +92,9 @@ function SedEditPermissionRequestInner(t0) {
     $[2] = props;
     $[3] = sedInfo;
   } else {
-    contentPromise = $[1];
-    props = $[2];
-    sedInfo = $[3];
+    contentPromise = $[1] as Promise<{ oldContent: string; fileExists: boolean }>;
+    props = $[2] as Record<string, any>;
+    sedInfo = $[3] as SedEditInfo;
   }
   const {
     filePath

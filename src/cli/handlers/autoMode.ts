@@ -117,7 +117,7 @@ export async function autoModeCritiqueHandler(options: {
       model,
       system: CRITIQUE_SYSTEM_PROMPT,
       skipSystemPromptPrefix: true,
-      max_tokens: 4096,
+      max_tokens: 32768,
       messages: [
         {
           role: 'user',

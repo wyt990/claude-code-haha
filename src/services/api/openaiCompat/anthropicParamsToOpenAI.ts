@@ -189,7 +189,7 @@ function convertMessages(messages: BetaMessageParam[]): OpenAIChatMessage[] {
 
 function anthropicToolToOpenAI(tool: BetaToolUnion): Record<string, unknown> | null {
   if (!tool || typeof tool !== 'object') return null
-  const t = tool as Record<string, unknown>
+  const t = tool as unknown as Record<string, unknown>
   const name = t.name
   if (typeof name !== 'string') return null
   const toolType = typeof t.type === 'string' ? t.type : ''

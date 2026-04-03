@@ -1,4 +1,9 @@
-export function unzipSync(_data: Uint8Array): Record<string, Uint8Array> {
+interface ZipFileMetadata {
+  name: string;
+  dir: boolean;
+}
+
+export function unzipSync(_data: Uint8Array, _opts?: { filter?: (file: ZipFileMetadata) => boolean }): Record<string, Uint8Array> {
   return {}
 }
 

@@ -60,8 +60,26 @@
       "@opentelemetry/exporter-trace-otlp-proto": [
         "./stubs/opentelemetry-exporter-trace-otlp-proto.ts"
       ],
+      "@ant/computer-use-mcp": [
+        "./stubs/ant-computer-use-mcp.ts"
+      ],
+      "@ant/computer-use-input": [
+        "./stubs/ant-computer-use-input.ts"
+      ],
+      "@ant/computer-use-swift": [
+        "./stubs/ant-computer-use-swift.ts"
+      ],
       "audio-capture-napi": [
         "./stubs/audio-capture-napi.ts"
+      ],
+      "cacache": [
+        "./stubs/cacache.ts"
+      ],
+      "plist": [
+        "./stubs/plist.ts"
+      ],
+      "url-handler-napi": [
+        "./stubs/url-handler-napi.ts"
       ],
       "cli-highlight": [
         "./stubs/cli-highlight.ts"

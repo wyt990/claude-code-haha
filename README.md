@@ -386,3 +386,9 @@ src/
 ## Disclaimer
 
 本仓库基于 2026-03-31 从 Anthropic npm registry 泄露的 Claude Code 源码。所有原始源码版权归 [Anthropic](https://www.anthropic.com) 所有。仅供学习和研究用途。
+
+# 错误检查
+
+```bash
+bun run tsc --noEmit
+```

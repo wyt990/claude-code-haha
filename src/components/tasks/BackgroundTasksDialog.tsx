@@ -19,7 +19,6 @@ import type { LocalWorkflowTaskState } from 'src/tasks/LocalWorkflowTask/LocalWo
 import type { MonitorMcpTaskState } from 'src/tasks/MonitorMcpTask/MonitorMcpTask.js';
 import { RemoteAgentTask, type RemoteAgentTaskState } from 'src/tasks/RemoteAgentTask/RemoteAgentTask.js';
 import { type BackgroundTaskState, isBackgroundTask, type TaskState } from 'src/tasks/types.js';
-import type { DeepImmutable } from 'src/types/utils.js';
 import { intersperse } from 'src/utils/array.js';
 import { TEAM_LEAD_NAME } from 'src/utils/swarm/constants.js';
 import { stopUltraplan } from '../../commands/ultraplan.js';
@@ -58,43 +57,43 @@ type ListItem = {
   type: 'local_bash';
   label: string;
   status: string;
-  task: DeepImmutable<LocalShellTaskState>;
+  task: LocalShellTaskState;
 } | {
   id: string;
   type: 'remote_agent';
   label: string;
   status: string;
-  task: DeepImmutable<RemoteAgentTaskState>;
+  task: RemoteAgentTaskState;
 } | {
   id: string;
   type: 'local_agent';
   label: string;
   status: string;
-  task: DeepImmutable<LocalAgentTaskState>;
+  task: LocalAgentTaskState;
 } | {
   id: string;
   type: 'in_process_teammate';
   label: string;
   status: string;
-  task: DeepImmutable<InProcessTeammateTaskState>;
+  task: InProcessTeammateTaskState;
 } | {
   id: string;
   type: 'local_workflow';
   label: string;
   status: string;
-  task: DeepImmutable<LocalWorkflowTaskState>;
+  task: LocalWorkflowTaskState;
 } | {
   id: string;
   type: 'monitor_mcp';
   label: string;
   status: string;
-  task: DeepImmutable<MonitorMcpTaskState>;
+  task: MonitorMcpTaskState;
 } | {
   id: string;
   type: 'dream';
   label: string;
   status: string;
-  task: DeepImmutable<DreamTaskState>;
+  task: DreamTaskState;
 } | {
   id: string;
   type: 'leader';
@@ -497,56 +496,56 @@ function toListItem(task: BackgroundTaskState): ListItem {
         type: 'local_bash',
         label: task.kind === 'monitor' ? task.description : task.command,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'remote_agent':
       return {
         id: task.id,
         type: 'remote_agent',
         label: task.title,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'local_agent':
       return {
         id: task.id,
         type: 'local_agent',
         label: task.description,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'in_process_teammate':
       return {
         id: task.id,
         type: 'in_process_teammate',
         label: `@${task.identity.agentName}`,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'local_workflow':
       return {
         id: task.id,
         type: 'local_workflow',
         label: task.summary ?? task.description,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'monitor_mcp':
       return {
         id: task.id,
         type: 'monitor_mcp',
         label: task.description,
         status: task.status,
-        task
-      };
+        task,
+      }
     case 'dream':
       return {
         id: task.id,
         type: 'dream',
         label: task.description,
         status: task.status,
-        task
-      };
+        task,
+      }
   }
 }
 function Item(t0) {

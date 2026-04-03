@@ -400,11 +400,11 @@ async function* queryLoop(
     let snipTokensFreed = 0
     if (feature('HISTORY_SNIP')) {
       queryCheckpoint('query_snip_start')
-      const snipResult = snipModule!.snipCompactIfNeeded(messagesForQuery)
-      messagesForQuery = snipResult.messages
-      snipTokensFreed = snipResult.tokensFreed
-      if (snipResult.boundaryMessage) {
-        yield snipResult.boundaryMessage
+      const snipResult = await snipModule!.snipCompactIfNeeded(messagesForQuery, { force: false })
+      messagesForQuery = (snipResult as any).messages
+      snipTokensFreed = (snipResult as any).tokensFreed
+      if ((snipResult as any).boundaryMessage) {
+        yield (snipResult as any).boundaryMessage
       }
       queryCheckpoint('query_snip_end')
     }

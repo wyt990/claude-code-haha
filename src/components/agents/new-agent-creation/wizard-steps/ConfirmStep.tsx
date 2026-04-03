@@ -36,7 +36,7 @@ export function ConfirmStep(t0) {
   const {
     goBack,
     wizardData
-  } = useWizard();
+  } = useWizard<AgentWizardData>();
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t1 = {
@@ -88,10 +88,10 @@ export function ConfirmStep(t0) {
   let t8;
   let t9;
   if ($[4] !== agent || $[5] !== existingAgents || $[6] !== handleKeyDown || $[7] !== tools || $[8] !== wizardData.location) {
-    const validation = validateAgent(agent, tools, existingAgents);
+    const validation = validateAgent(agent as Omit<import('../../../../tools/AgentTool/loadAgentsDir.js').CustomAgentDefinition, 'location'>, tools, existingAgents);
     let t20;
     if ($[28] !== agent) {
-      t20 = truncateToWidth(agent.getSystemPrompt(), 240);
+      t20 = truncateToWidth((agent as import('../../../../tools/AgentTool/loadAgentsDir.js').CustomAgentDefinition).getSystemPrompt(), 240);
       $[28] = agent;
       $[29] = t20;
     } else {
@@ -154,7 +154,7 @@ export function ConfirmStep(t0) {
     let t25;
     if ($[39] !== agent.agentType || $[40] !== wizardData.location) {
       t25 = getNewRelativeAgentFilePath({
-        source: wizardData.location,
+        source: wizardData.location as import('../../../../utils/settings/constants.js').SettingSource | 'built-in',
         agentType: agent.agentType
       });
       $[39] = agent.agentType;

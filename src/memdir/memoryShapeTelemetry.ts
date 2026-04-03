@@ -7,3 +7,8 @@ export function logMemoryWriteShape(
   _filePath: string,
   _scope: string,
 ): void {}
+
+export function logMemoryRecallShape(
+  _memories: unknown,
+  _selected: unknown,
+): void {}

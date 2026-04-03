@@ -5,7 +5,7 @@ import { stringWidth } from './stringWidth.js'
 // unchanged lines on every token (~50x reduction in stringWidth calls).
 const cache = new Map<string, number>()
 
-const MAX_CACHE_SIZE = 4096
+const MAX_CACHE_SIZE = 32768
 
 export function lineWidth(line: string): number {
   const cached = cache.get(line)

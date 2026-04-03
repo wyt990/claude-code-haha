@@ -4,7 +4,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type AssistantMessage = any
-export type AttachmentMessage = any
+export type AttachmentMessage<_T = unknown> = any
 export type CollapsedReadSearchGroup = any
 export type CollapsibleMessage = any
 export type CompactMetadata = any
@@ -12,7 +12,7 @@ export type GroupedToolUseMessage = any
 export type HookResultMessage = any
 export type Message = any
 export type MessageOrigin = any
-export type NormalizedAssistantMessage = any
+export type NormalizedAssistantMessage<_T = unknown> = any
 export type NormalizedMessage = any
 export type NormalizedUserMessage = any
 export type PartialCompactDirection = any
@@ -45,6 +45,8 @@ export type SystemCompactBoundaryMessage = {
     userContext?: unknown
     messagesSummarized?: number
     preservedSegment?: unknown
+    /** Tool names discovered pre-compact; preserved for post-compact schema filtering. */
+    preCompactDiscoveredTools?: string[]
   }
   logicalParentUuid?: string
 }

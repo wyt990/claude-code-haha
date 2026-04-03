@@ -27,7 +27,7 @@ import { collapseTeammateShutdowns } from '../utils/collapseTeammateShutdowns.js
 import { getGlobalConfig } from '../utils/config.js';
 import { isEnvTruthy } from '../utils/envUtils.js';
 import { isFullscreenEnvEnabled } from '../utils/fullscreen.js';
-import { applyGrouping } from '../utils/groupToolUses.js';
+import { applyGrouping, type MessageWithoutProgress } from '../utils/groupToolUses.js';
 import { buildMessageLookups, createAssistantMessage, deriveUUID, getMessagesAfterCompactBoundary, getToolUseID, getToolUseIDs, hasUnresolvedHooksFromLookup, isNotEmptyMessage, normalizeMessages, reorderMessagesInUI, type StreamingThinking, type StreamingToolUse, shouldShowUserMessage } from '../utils/messages.js';
 import { plural } from '../utils/stringUtils.js';
 import { renderableSearchText } from '../utils/transcriptSearch.js';
@@ -52,7 +52,10 @@ import type { JumpHandle } from './VirtualMessageList.js';
 // and pegs CPU at 100%. Memo on agentDefinitions so a new messages array
 // doesn't invalidate the logo subtree. LogoV2/StatusNotices internally
 // subscribe to useAppState/useSettings for their own updates.
-const LogoHeader = React.memo(function LogoHeader(t0) {
+type LogoHeaderProps = {
+  agentDefinitions: AgentDefinitionsResult | undefined;
+};
+const LogoHeader = React.memo(function LogoHeader(t0: LogoHeaderProps) {
   const $ = _c(3);
   const {
     agentDefinitions
@@ -516,7 +519,7 @@ const MessagesImpl = ({
     const hasTruncatedMessages = shouldTruncate && briefFiltered.length > MAX_MESSAGES_TO_SHOW_IN_TRANSCRIPT_MODE;
     const {
       messages: groupedMessages
-    } = applyGrouping(messagesToShow, tools, verbose);
+    } = applyGrouping(messagesToShow as MessageWithoutProgress[], tools, verbose);
     const collapsed = collapseBackgroundBashNotifications(collapseHookSummaries(collapseTeammateShutdowns(collapseReadSearchGroups(groupedMessages, tools))), verbose);
     const lookups = buildMessageLookups(normalizedMessages, messagesToShow);
     const hiddenMessageCount = messagesToShowNotTruncated.length - MAX_MESSAGES_TO_SHOW_IN_TRANSCRIPT_MODE;

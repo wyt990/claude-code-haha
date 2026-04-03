@@ -1,9 +1,18 @@
 import type { RemoteMessageContent } from '../utils/teleport/api.js'
 
+export interface SSHPermissionRequest {
+  tool_name: string
+  description?: string
+  permission_suggestions?: string[]
+  blocked_path?: string
+  input?: Record<string, unknown>
+  tool_use_id: string
+}
+
 /** Hooks passed to {@link SSHSession.createManager}. */
 export type SSHSessionManagerHooks = {
   onMessage: (msg: unknown) => void
-  onPermissionRequest: (request: unknown, requestId: string) => void
+  onPermissionRequest: (request: SSHPermissionRequest, requestId: string) => void
   onConnected: () => void
   onReconnecting: (attempt: number, max: number) => void
   onDisconnected: () => void

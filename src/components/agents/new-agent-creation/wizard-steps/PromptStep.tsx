@@ -18,7 +18,7 @@ export function PromptStep() {
     updateWizardData,
     wizardData
   } = useWizard();
-  const [systemPrompt, setSystemPrompt] = useState(wizardData.systemPrompt || "");
+  const [systemPrompt, setSystemPrompt] = useState<string>((wizardData.systemPrompt as string) || "");
   const [cursorOffset, setCursorOffset] = useState(systemPrompt.length);
   const [error, setError] = useState(null);
   let t0;

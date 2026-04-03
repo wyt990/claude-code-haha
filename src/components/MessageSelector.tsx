@@ -804,14 +804,14 @@ export function messagesAfterAreOnlySynthetic(messages: Message[], fromIndex: nu
     // Skip known non-meaningful message types
     if (isSyntheticMessage(msg)) continue;
     if (isToolUseResultMessage(msg)) continue;
-    if (msg.type === 'progress') continue;
-    if (msg.type === 'system') continue;
-    if (msg.type === 'attachment') continue;
-    if (msg.type === 'user' && msg.isMeta) continue;
+    if ((msg as Message).type === 'progress') continue;
+    if ((msg as Message).type === 'system') continue;
+    if ((msg as Message).type === 'attachment') continue;
+    if ((msg as Message).type === 'user' && (msg as Message).isMeta) continue;
 
     // Assistant with actual content = meaningful
-    if (msg.type === 'assistant') {
-      const content = msg.message.content;
+    if ((msg as Message).type === 'assistant') {
+      const content = (msg as Message).message.content;
       if (Array.isArray(content)) {
         const hasMeaningfulContent = content.some(block => block.type === 'text' && block.text.trim() || block.type === 'tool_use');
         if (hasMeaningfulContent) return false;
@@ -820,7 +820,7 @@ export function messagesAfterAreOnlySynthetic(messages: Message[], fromIndex: nu
     }
 
     // User messages that aren't synthetic or meta = meaningful
-    if (msg.type === 'user') {
+    if ((msg as Message).type === 'user') {
       return false;
     }
 

@@ -5,3 +5,11 @@ export class BedrockClient {
     return {}
   }
 }
+
+export class ListInferenceProfilesCommand {
+  constructor(_input?: any) {}
+}
+
+export class GetInferenceProfileCommand {
+  constructor(_input?: any) {}
+}

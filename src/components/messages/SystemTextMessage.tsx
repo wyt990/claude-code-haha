@@ -19,6 +19,7 @@ import { useTerminalSize } from '../../hooks/useTerminalSize.js';
 import type { SystemMessage, SystemStopHookSummaryMessage, SystemBridgeStatusMessage, SystemTurnDurationMessage, SystemThinkingMessage, SystemMemorySavedMessage } from '../../types/message.js';
 import { SystemAPIErrorMessage } from './SystemAPIErrorMessage.js';
 import { formatDuration, formatNumber, formatSecondsShort } from '../../utils/format.js';
+import { HOOK_TIMING_DISPLAY_THRESHOLD_MS } from '../../services/tools/toolExecution.js';
 import { getGlobalConfig } from '../../utils/config.js';
 import Link from '../../ink/components/Link.js';
 import ThemedText from '../design-system/ThemedText.js';

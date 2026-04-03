@@ -692,7 +692,7 @@ export function logAPISuccessAndDuration({
     preNormalizedModel,
     messageCount,
     messageTokens,
-    usage,
+    usage: usage as Usage,
     durationMs,
     durationMsIncludingRetries,
     attempt,

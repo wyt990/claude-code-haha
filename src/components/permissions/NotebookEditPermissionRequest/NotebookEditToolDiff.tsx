@@ -74,7 +74,7 @@ function NotebookEditToolDiffInner(t0) {
     promise
   } = t0;
   const edit_mode = t1 === undefined ? "replace" : t1;
-  const notebookData = use(promise);
+  const notebookData = use(promise) as { cells: Array<{ id?: string; source: string | string[] }> } | null;
   let t2;
   if ($[0] !== cell_id || $[1] !== notebookData) {
     bb0: {

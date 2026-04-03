@@ -408,7 +408,7 @@ export async function installResolvedPlugin({
     allowedCrossMarketplaces,
   )
   if (!resolution.ok) {
-    return { ok: false, reason: 'resolution-failed', resolution }
+    return { ok: false, reason: 'resolution-failed', resolution: resolution as ResolutionResult & { ok: false } }
   }
 
   // ── Policy guard for transitive dependencies ──
@@ -524,7 +524,7 @@ export async function installPluginFromMarketplace({
       marketplaceInstallLocation,
     })
 
-    if (!result.ok) {
+    if (result.ok === false) {
       switch (result.reason) {
         case 'local-source-no-location':
           return {

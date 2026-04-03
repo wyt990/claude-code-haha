@@ -225,9 +225,9 @@ export function useVoiceIntegration({
   const voiceState = feature('VOICE_MODE') ?
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
   useVoiceState(s => s.voiceState) : 'idle' as const;
-  const voiceInterimTranscript = feature('VOICE_MODE') ?
+  const voiceInterimTranscript = (feature('VOICE_MODE') ?
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
-  useVoiceState(s_0 => s_0.voiceInterimTranscript) : '';
+  useVoiceState(s_0 => s_0.voiceInterimTranscript) : '') as string;
 
   // Set the voice anchor for focus mode (where recording starts via terminal
   // focus, not key hold). Key-hold sets the anchor in stripTrailing.
@@ -253,8 +253,8 @@ export function useVoiceIntegration({
   useEffect(() => {
     if (!feature('VOICE_MODE')) return;
     if (voicePrefixRef.current === null) return;
-    const prefix_0 = voicePrefixRef.current;
-    const suffix_0 = voiceSuffixRef.current;
+    const prefix_0 = voicePrefixRef.current as string;
+    const suffix_0 = voiceSuffixRef.current as string;
     // Submit race: if the input isn't what this hook last set it to, the
     // user submitted (clearing it) or edited it. voicePrefixRef is only
     // cleared on voiceState→idle, so it's still set during the 'processing'
@@ -329,7 +329,7 @@ export function useVoiceIntegration({
     if (!feature('VOICE_MODE')) return null;
     if (voicePrefixRef.current === null) return null;
     if (voiceInterimTranscript.length === 0) return null;
-    const prefix_2 = voicePrefixRef.current;
+    const prefix_2 = voicePrefixRef.current as string;
     const needsSpace_1 = prefix_2.length > 0 && !/\s$/.test(prefix_2) && voiceInterimTranscript.length > 0;
     const start = prefix_2.length + (needsSpace_1 ? 1 : 0);
     const end = start + voiceInterimTranscript.length;

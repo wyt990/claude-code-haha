@@ -180,7 +180,7 @@ export function ResumeConversation({
     const resumeStart = performance.now();
     const crossProjectCheck = checkCrossProjectResume(log_0, showAllProjects, worktreePaths);
     if (crossProjectCheck.isCrossProject) {
-      if (!crossProjectCheck.isSameRepoWorktree) {
+      if ('command' in crossProjectCheck) {
         const raw = await setClipboard(crossProjectCheck.command);
         if (raw) process.stdout.write(raw);
         setCrossProjectCommand(crossProjectCheck.command);

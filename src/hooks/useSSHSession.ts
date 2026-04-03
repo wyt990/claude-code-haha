@@ -76,7 +76,7 @@ export function useSSHSession({
         }
 
         // Skip duplicate init messages (one per turn from stream-json mode).
-        if (sdkMessage.type === 'system' && sdkMessage.subtype === 'init') {
+        if ((sdkMessage as any).type === 'system' && (sdkMessage as any).subtype === 'init') {
           if (hasReceivedInitRef.current) return
           hasReceivedInitRef.current = true
         }
@@ -106,7 +106,7 @@ export function useSSHSession({
           behavior: 'ask',
           message:
             request.description ?? `${request.tool_name} requires permission`,
-          suggestions: request.permission_suggestions,
+          suggestions: request.permission_suggestions as any,
           blockedPath: request.blocked_path,
         }
 

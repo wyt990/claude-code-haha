@@ -93,6 +93,19 @@ type MCPOAuthFlowErrorReason =
 
 const MAX_LOCK_RETRIES = 5
 
+/** Narrow `unknown` fields from {@link SecureStorageData} so object spread is valid (TS2698). */
+function secureStorageObjectRecord(value: unknown): Record<string, unknown> {
+  if (
+    value !== undefined &&
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value)
+  ) {
+    return { ...(value as Record<string, unknown>) }
+  }
+  return {}
+}
+
 /**
  * OAuth query parameters that should be redacted from logs.
  * These contain sensitive values that could enable CSRF or session fixation attacks.
@@ -584,16 +597,18 @@ export async function revokeServerTokens(
     (tokenData.stepUpScope || tokenData.discoveryState)
   ) {
     const freshData = storage.read() || {}
+    const prevMcpOAuth = secureStorageObjectRecord(freshData.mcpOAuth)
+    const prevServerEntry = secureStorageObjectRecord(prevMcpOAuth[serverKey])
     const updatedData: SecureStorageData = {
       ...freshData,
       mcpOAuth: {
-        ...freshData.mcpOAuth,
+        ...prevMcpOAuth,
         [serverKey]: {
-          ...freshData.mcpOAuth?.[serverKey],
+          ...prevServerEntry,
           serverName,
           serverUrl: serverConfig.url,
-          accessToken: freshData.mcpOAuth?.[serverKey]?.accessToken ?? '',
-          expiresAt: freshData.mcpOAuth?.[serverKey]?.expiresAt ?? 0,
+          accessToken: (prevServerEntry.accessToken as string | undefined) ?? '',
+          expiresAt: (prevServerEntry.expiresAt as number | undefined) ?? 0,
           ...(tokenData.stepUpScope
             ? { stepUpScope: tokenData.stepUpScope }
             : {}),
@@ -796,18 +811,20 @@ async function performMCPXaaAuth(
     const storage = getSecureStorage()
     const existingData = storage.read() || {}
     const serverKey = getServerKey(serverName, serverConfig)
-    const prev = existingData.mcpOAuth?.[serverKey]
+    const prevMcpOAuth = secureStorageObjectRecord(existingData.mcpOAuth)
+    const prev = secureStorageObjectRecord(prevMcpOAuth[serverKey])
     storage.update({
       ...existingData,
       mcpOAuth: {
-        ...existingData.mcpOAuth,
+        ...prevMcpOAuth,
         [serverKey]: {
           ...prev,
           serverName,
           serverUrl: serverConfig.url,
           accessToken: tokens.access_token,
           // AS may omit refresh_token on jwt-bearer — preserve any existing one
-          refreshToken: tokens.refresh_token ?? prev?.refreshToken,
+          refreshToken:
+            tokens.refresh_token ?? (prev.refreshToken as string | undefined),
           expiresAt: Date.now() + (tokens.expires_in || 3600) * 1000,
           scope: tokens.scope,
           clientId,
@@ -1517,19 +1534,21 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     const existingData = storage.read() || {}
     const serverKey = getServerKey(this.serverName, this.serverConfig)
 
+    const prevMcpOAuth = secureStorageObjectRecord(existingData.mcpOAuth)
+    const prevServerEntry = secureStorageObjectRecord(prevMcpOAuth[serverKey])
     const updatedData: SecureStorageData = {
       ...existingData,
       mcpOAuth: {
-        ...existingData.mcpOAuth,
+        ...prevMcpOAuth,
         [serverKey]: {
-          ...existingData.mcpOAuth?.[serverKey],
+          ...prevServerEntry,
           serverName: this.serverName,
           serverUrl: this.serverConfig.url,
           clientId: clientInformation.client_id,
           clientSecret: clientInformation.client_secret,
           // Provide default values for required fields if not present
-          accessToken: existingData.mcpOAuth?.[serverKey]?.accessToken || '',
-          expiresAt: existingData.mcpOAuth?.[serverKey]?.expiresAt || 0,
+          accessToken: (prevServerEntry.accessToken as string | undefined) || '',
+          expiresAt: (prevServerEntry.expiresAt as number | undefined) || 0,
         },
       },
     }
@@ -1711,12 +1730,14 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     logMCPDebug(this.serverName, `Token expires in: ${tokens.expires_in}`)
     logMCPDebug(this.serverName, `Has refresh token: ${!!tokens.refresh_token}`)
 
+    const prevMcpOAuth = secureStorageObjectRecord(existingData.mcpOAuth)
+    const prevServerEntry = secureStorageObjectRecord(prevMcpOAuth[serverKey])
     const updatedData: SecureStorageData = {
       ...existingData,
       mcpOAuth: {
-        ...existingData.mcpOAuth,
+        ...prevMcpOAuth,
         [serverKey]: {
-          ...existingData.mcpOAuth?.[serverKey],
+          ...prevServerEntry,
           serverName: this.serverName,
           serverUrl: this.serverConfig.url,
           accessToken: tokens.access_token,
@@ -1809,17 +1830,19 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
       const storage = getSecureStorage()
       const existingData = storage.read() || {}
       const serverKey = getServerKey(this.serverName, this.serverConfig)
-      const prev = existingData.mcpOAuth?.[serverKey]
+      const prevMcpOAuth = secureStorageObjectRecord(existingData.mcpOAuth)
+      const prev = secureStorageObjectRecord(prevMcpOAuth[serverKey])
       storage.update({
         ...existingData,
         mcpOAuth: {
-          ...existingData.mcpOAuth,
+          ...prevMcpOAuth,
           [serverKey]: {
             ...prev,
             serverName: this.serverName,
             serverUrl: this.serverConfig.url,
             accessToken: tokens.access_token,
-            refreshToken: tokens.refresh_token ?? prev?.refreshToken,
+            refreshToken:
+              tokens.refresh_token ?? (prev.refreshToken as string | undefined),
             expiresAt: Date.now() + (tokens.expires_in || 3600) * 1000,
             scope: tokens.scope,
             clientId,
@@ -2013,16 +2036,19 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
     // the credential store (#30337). The SDK re-fetches missing metadata
     // with one HTTP GET on the next auth — see node_modules/.../auth.js
     // `cachedState.authorizationServerMetadata ?? await discover...`.
+    const prevMcpOAuth = secureStorageObjectRecord(existingData.mcpOAuth)
+    const prevServerEntry = secureStorageObjectRecord(prevMcpOAuth[serverKey])
+
     const updatedData: SecureStorageData = {
       ...existingData,
       mcpOAuth: {
-        ...existingData.mcpOAuth,
+        ...prevMcpOAuth,
         [serverKey]: {
-          ...existingData.mcpOAuth?.[serverKey],
+          ...prevServerEntry,
           serverName: this.serverName,
           serverUrl: this.serverConfig.url,
-          accessToken: existingData.mcpOAuth?.[serverKey]?.accessToken || '',
-          expiresAt: existingData.mcpOAuth?.[serverKey]?.expiresAt || 0,
+          accessToken: (prevServerEntry.accessToken as string | undefined) || '',
+          expiresAt: (prevServerEntry.expiresAt as number | undefined) || 0,
           discoveryState: {
             authorizationServerUrl: state.authorizationServerUrl,
             resourceMetadataUrl: state.resourceMetadataUrl,
@@ -2404,10 +2430,13 @@ export function saveMcpClientSecret(
   const storage = getSecureStorage()
   const existingData = storage.read() || {}
   const serverKey = getServerKey(serverName, serverConfig)
+  const prevClientConfig = secureStorageObjectRecord(
+    existingData.mcpOAuthClientConfig,
+  )
   storage.update({
     ...existingData,
     mcpOAuthClientConfig: {
-      ...existingData.mcpOAuthClientConfig,
+      ...prevClientConfig,
       [serverKey]: { clientSecret },
     },
   })

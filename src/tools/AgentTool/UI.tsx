@@ -1,5 +1,6 @@
 import { c as _c } from "react/compiler-runtime";
 import type { ToolResultBlockParam, ToolUseBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
+import type { BetaUsage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs';
 import * as React from 'react';
 import { ConfigurableShortcutHint } from 'src/components/ConfigurableShortcutHint.js';
 import { CtrlOToExpand, SubAgentProvider } from 'src/components/CtrlOToExpand.js';
@@ -99,7 +100,7 @@ type ProcessedMessage = {
  */
 function processProgressMessages(messages: ProgressMessage<Progress>[], tools: Tools, isAgentRunning: boolean): ProcessedMessage[] {
   // Only process for ants
-  if ("external" !== 'ant') {
+  if (!MACRO.BUILD_IS_ANT) {
     return messages.filter((m): m is ProgressMessage<AgentToolProgress> => hasProgressMessage(m.data) && m.data.message.type !== 'user').map(m => ({
       type: 'original',
       message: m
@@ -382,7 +383,7 @@ export function renderToolResultMessage(data: Output, progressMessagesForMessage
       inference_geo: null,
       iterations: null,
       speed: null
-    }
+    } as BetaUsage
   });
   return <Box flexDirection="column">
       {MACRO.BUILD_IS_ANT && <MessageResponse>

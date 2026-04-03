@@ -159,14 +159,14 @@ export async function getAnthropicClient({
         ? process.env.ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION
         : getAWSRegion()
 
-    const bedrockArgs: ConstructorParameters<typeof AnthropicBedrock>[0] = {
+    const bedrockArgs = {
       ...ARGS,
       awsRegion,
       ...(isEnvTruthy(process.env.CLAUDE_CODE_SKIP_BEDROCK_AUTH) && {
         skipAuth: true,
       }),
       ...(isDebugToStdErr() && { logger: createStderrLogger() }),
-    }
+    } as ConstructorParameters<typeof AnthropicBedrock>[0]
 
     // Add API key authentication if available
     if (process.env.AWS_BEARER_TOKEN_BEDROCK) {
@@ -180,9 +180,9 @@ export async function getAnthropicClient({
       // Refresh auth and get credentials with cache clearing
       const cachedCredentials = await refreshAndGetAwsCredentials()
       if (cachedCredentials) {
-        bedrockArgs.awsAccessKey = cachedCredentials.accessKeyId
-        bedrockArgs.awsSecretKey = cachedCredentials.secretAccessKey
-        bedrockArgs.awsSessionToken = cachedCredentials.sessionToken
+        ;(bedrockArgs as any).awsAccessKey = cachedCredentials.accessKeyId
+        ;(bedrockArgs as any).awsSecretKey = cachedCredentials.secretAccessKey
+        ;(bedrockArgs as any).awsSessionToken = cachedCredentials.sessionToken
       }
     }
     // we have always been lying about the return type - this doesn't support batching or models
@@ -287,12 +287,12 @@ export async function getAnthropicClient({
               }),
         })
 
-    const vertexArgs: ConstructorParameters<typeof AnthropicVertex>[0] = {
+    const vertexArgs = {
       ...ARGS,
       region: getVertexRegionForModel(model),
-      googleAuth,
+      googleAuth: googleAuth as any,
       ...(isDebugToStdErr() && { logger: createStderrLogger() }),
-    }
+    } as ConstructorParameters<typeof AnthropicVertex>[0]
     // we have always been lying about the return type - this doesn't support batching or models
     return new AnthropicVertex(vertexArgs) as unknown as Anthropic
   }

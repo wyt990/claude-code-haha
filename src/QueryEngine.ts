@@ -169,7 +169,7 @@ export type QueryEngineConfig = {
   snipReplay?: (
     yieldedSystemMsg: Message,
     store: Message[],
-  ) => { messages: Message[]; executed: boolean } | undefined
+  ) => Promise<{ messages: Message[]; executed: boolean } | undefined> | { messages: Message[]; executed: boolean } | undefined
 }
 
 /**
@@ -902,11 +902,12 @@ export class QueryEngine {
           // never shrinks (memory leak in long SDK sessions). The subtype
           // check lives inside the injected callback so feature-gated strings
           // stay out of this file (excluded-strings check).
-          const snipResult = this.config.snipReplay?.(
+          const snipMaybe = this.config.snipReplay?.(
             message,
             this.mutableMessages,
           )
-          if (snipResult !== undefined) {
+          if (snipMaybe !== undefined) {
+            const snipResult = await Promise.resolve(snipMaybe)
             if (snipResult.executed) {
               this.mutableMessages.length = 0
               this.mutableMessages.push(...snipResult.messages)
@@ -1063,8 +1064,8 @@ export class QueryEngine {
     // `result` narrows to never and these accesses don't typecheck.
     const edeResultType = result?.type ?? 'undefined'
     const edeLastContentType =
-      result?.type === 'assistant'
-        ? (last(result.message.content)?.type ?? 'none')
+      (result as any)?.type === 'assistant'
+        ? ((last((result as any).message.content) as any)?.type ?? 'none')
         : 'n/a'
 
     // Flush buffered transcript writes before yielding result.
@@ -1121,13 +1122,13 @@ export class QueryEngine {
     let textResult = ''
     let isApiError = false
 
-    if (result.type === 'assistant') {
-      const lastContent = last(result.message.content)
+    if ((result as any).type === 'assistant') {
+      const lastContent = last((result as any).message.content)
       if (
-        lastContent?.type === 'text' &&
-        !SYNTHETIC_MESSAGES.has(lastContent.text)
+        (lastContent as any)?.type === 'text' &&
+        !SYNTHETIC_MESSAGES.has((lastContent as any).text)
       ) {
-        textResult = lastContent.text
+        textResult = (lastContent as any).text
       }
       isApiError = Boolean(result.isApiErrorMessage)
     }
@@ -1275,10 +1276,10 @@ export async function* ask({
     orphanedPermission,
     ...(feature('HISTORY_SNIP')
       ? {
-          snipReplay: (yielded: Message, store: Message[]) => {
+          snipReplay: (yielded: Message, store: Message[]): ReturnType<NonNullable<QueryEngineConfig['snipReplay']>> => {
             if (!snipProjection!.isSnipBoundaryMessage(yielded))
               return undefined
-            return snipModule!.snipCompactIfNeeded(store, { force: true })
+            return snipModule!.snipCompactIfNeeded(store, { force: true }) as ReturnType<NonNullable<QueryEngineConfig['snipReplay']>>
           },
         }
       : {}),

@@ -213,10 +213,12 @@ async function compactViaReactive(
         .filter(Boolean)
         .join('\n') || undefined
 
+    // Cast the stub to CompactionResult - the stub has compatible shape at runtime
+    const resultAsCompaction = outcome.result as unknown as CompactionResult
     return {
       type: 'compact',
       compactionResult: {
-        ...outcome.result,
+        ...resultAsCompaction,
         userDisplayMessage: combinedMessage,
       },
       displayText: buildDisplayText(context, combinedMessage),

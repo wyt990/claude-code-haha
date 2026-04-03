@@ -1,3 +1,3 @@
-export function watchSystemTheme(_cb: (dark: boolean) => void): () => void {
+export function watchSystemTheme(_cb: (dark: boolean) => void, _querier?: unknown): () => void {
   return () => {}
 }

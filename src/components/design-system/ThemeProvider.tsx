@@ -70,7 +70,7 @@ export function ThemeProvider({
         watchSystemTheme
       }) => {
         if (cancelled) return;
-        cleanup = watchSystemTheme(internal_querier, setSystemTheme);
+        cleanup = watchSystemTheme((dark: boolean) => setSystemTheme(dark ? 'dark' : 'light'), internal_querier);
       });
       return () => {
         cancelled = true;
