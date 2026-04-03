@@ -36,7 +36,10 @@ export CLAUDE_CODE_BIN_DIR="$HOME/bin"
 curl -fsSL ... | bash
 ```
 
-安装完成后若提示 PATH，将 `~/.local/bin`（或你设置的 `CLAUDE_CODE_BIN_DIR`）加入 `~/.bashrc` / `~/.zshrc`。
+`install.sh` 会在 **`~/.bashrc`**（以及若存在则 **`~/.zshrc`**）末尾**幂等**追加一段 `export PATH="…/.local/bin:$PATH"`（带标记块，重复执行不会叠多行）。管道执行 `curl … | bash` **无法**改变你当前已打开的终端环境变量，新终端或执行 `source ~/.bashrc` 后可直接打 `claudecode`。
+
+- 跳过改 shell 配置：`CLAUDE_CODE_SKIP_SHELL_RC=1`
+- 更详细日志：`INSTALL_VERBOSE=1`
 
 ### Windows（PowerShell）
 
