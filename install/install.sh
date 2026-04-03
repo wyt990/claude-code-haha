@@ -88,10 +88,12 @@ pick_download_url() {
     die "failed to fetch ${api} (set GITHUB_TOKEN if rate-limited)"
 
   if command -v jq >/dev/null 2>&1; then
+    # Regex must NOT use "\\(" around $slug — that makes a literal "(" then ")" tries to
+    # close a regex group → jq: "Regex failure: unmatched close parenthesis".
     echo "$json" |
       jq -r --arg slug "$slug" '
         .assets[]
-        | select(.name | test("^claudecode-\\($slug)-.+\\.tar\\.gz$"))
+        | select((.name | type) == "string" and (.name | test("^claudecode-\($slug)-.+\\.tar\\.gz$")))
         | .browser_download_url' |
       head -n1
     return 0
