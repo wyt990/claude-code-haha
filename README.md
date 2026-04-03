@@ -299,6 +299,29 @@ bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=
 
 ---
 
+## 从 GitHub Release 一键安装
+
+仓库提供 `install/install.sh`（Linux / macOS）与 `install/install.ps1`（Windows）。使用前需在 GitHub 上创建 **Release**，并上传 `bun run build:release` 产出的 `claudecode-<平台>-<版本>.tar.gz`（脚本从 `releases/latest` 拉取匹配平台的资源）。
+
+- **完整说明**（依赖、自定义目录、`GITHUB_TOKEN`、卸载等）：[install/README.md](./install/README.md)
+- **默认仓库**为 `wyt990/claude-code-haha`；安装时可设置环境变量 **`GITHUB_REPO=owner/repo`** 指向你的 fork 或镜像。
+
+**Linux / macOS：**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/install.sh | bash
+```
+
+**Windows（PowerShell）：**
+
+```powershell
+irm https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/install.ps1 | iex
+```
+
+安装后：**当前工作目录**即你打开的项目目录；**API 等配置**写在安装目录下的 `.env`。启动器会设置 **`CLAUDE_CODE_INSTALL_PREFIX`**，运行时从该目录加载 `.env`（不覆盖你已在 shell 里导出的变量）。解析 GitHub API 需要 **`jq` 或 `python3`**（与 `curl`、`tar` 一并说明见 `install/README.md`）。
+
+---
+
 ## 环境变量说明
 
 | 变量 | 必填 | 说明 |
@@ -317,6 +340,7 @@ bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=
 | `API_TIMEOUT_MS` | 否 | API 请求超时，默认 600000 (10min) |
 | `DISABLE_TELEMETRY` | 否 | 设为 `1` 禁用遥测 |
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | 否 | 设为 `1` 禁用非必要网络请求 |
+| `CLAUDE_CODE_INSTALL_PREFIX` | 否 | 由 `install/install.sh` 等启动器设置；从该目录加载 `.env`（Release 独立可执行文件安装场景） |
 
 ---
 
@@ -350,6 +374,7 @@ CLAUDE_CODE_FORCE_RECOVERY_CLI=1 ./bin/claudecode
 ```
 bin/claudecode          # 入口脚本
 preload.ts               # Bun preload（设置 MACRO 全局变量）
+install/                 # Release 一键安装脚本（install.sh / install.ps1）与说明
 .env.example             # 环境变量模板
 docs/                    # 说明文档（含 OpenAI 兼容方案等）
 src/

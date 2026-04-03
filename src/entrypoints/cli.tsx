@@ -1,3 +1,6 @@
+// Ensure preload (MACRO, install-dir .env, base URL normalization) runs in
+// `bun build --compile` bundles where bunfig.toml may not ship with the binary.
+import '../../preload.js';
 import { feature } from 'bun:bundle';
 
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons

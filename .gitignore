@@ -7,4 +7,3 @@ build
 build/
 dist/
 backup/
-docs/*.md

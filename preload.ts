@@ -1,3 +1,4 @@
+import './src/bootstrap/installPrefixEnv.js';
 import { CLAUDE_CODE_VERSION } from './src/constants/version.js';
 import { applyAnthropicBaseUrlEnvNormalization } from './src/utils/anthropicBaseUrl.js';
 
