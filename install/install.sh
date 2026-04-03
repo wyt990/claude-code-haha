@@ -90,11 +90,12 @@ pick_download_url() {
   if command -v jq >/dev/null 2>&1; then
     # Regex must NOT use "\\(" around $slug — that makes a literal "(" then ")" tries to
     # close a regex group → jq: "Regex failure: unmatched close parenthesis".
-    # max_by(.name): same release may list 100.0.1 + 100.0.2 assets — take lexicographically newest name
+    # Require "-[0-9]" after slug so "linuxX64" does not match "linuxX64-musl" archives.
+    # max_by(.name): same release may list 100.0.1 + 100.0.2 — pick lexicographically newest name.
     echo "$json" |
       jq -r --arg slug "$slug" '
         [ .assets[]
-          | select((.name | type) == "string" and (.name | test("^claudecode-\($slug)-.+\\.tar\\.gz$")))
+          | select((.name | type) == "string" and (.name | test("^claudecode-\($slug)-[0-9].+\\.tar\\.gz$")))
         ]
         | if length == 0 then empty else max_by(.name) | .browser_download_url end'
     return 0
@@ -104,7 +105,7 @@ pick_download_url() {
     echo "$json" | python3 -c "
 import json, re, sys
 slug = sys.argv[1]
-pat = re.compile(r'^claudecode-' + re.escape(slug) + r'-.+\.tar\.gz\$')
+pat = re.compile(r'^claudecode-' + re.escape(slug) + r'-[0-9].+\.tar\.gz\$')
 data = json.load(sys.stdin)
 best = None
 for a in data.get('assets', []):
