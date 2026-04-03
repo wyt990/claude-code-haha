@@ -145,6 +145,21 @@ path_has_bin_dir() {
   esac
 }
 
+# curl … | bash runs in a child process: export there cannot change your current terminal.
+# If you run:  source /path/to/install.sh  (or . install.sh) in an interactive bash, we can export here.
+try_export_path_in_parent_shell() {
+  [ -n "${BASH_VERSION:-}" ] || return 1
+  [ "${BASH_SOURCE[0]}" != "${0}" ] || return 1
+  [ -t 0 ] || return 1
+  if path_has_bin_dir; then
+    log "PATH already contains ${BIN_DIR} in this shell."
+    return 0
+  fi
+  export PATH="${BIN_DIR}:${PATH}"
+  log "PATH updated in this shell (install was sourced in interactive bash, not piped from curl)."
+  return 0
+}
+
 append_path_block_to_rc() {
   local rc="$1"
   [ -n "$rc" ] || return 0
@@ -298,7 +313,6 @@ EOF
   echo
   log "Run launcher by absolute path (always works):"
   log "  ${wrapper} -v"
-  log "Do NOT use ./root/.local/... — use leading slash: /root/.local/bin/..."
 
   if path_has_bin_dir; then
     log "${BIN_DIR} is already on PATH in this shell — try: claudecode -v"
@@ -312,11 +326,16 @@ EOF
         append_path_block_to_rc "${HOME}/.zshrc"
       fi
     fi
-    log "For this terminal only, run:"
-    log "  export PATH=\"${BIN_DIR}:\$PATH\""
-    log "Then: claudecode -v"
-    log "New terminals: open a new tab/window, or run: source ~/.bashrc   (or ~/.zshrc for zsh)"
-    log "Note: curl ... | bash runs a non-interactive shell; it cannot change your already-open terminal PATH."
+    if try_export_path_in_parent_shell; then
+      log "You can run now: claudecode -v"
+    else
+      log "This shell was not 'sourced' (e.g. curl … | bash) — cannot export PATH into your parent terminal."
+      log "For this terminal only, run:"
+      log "  export PATH=\"${BIN_DIR}:\$PATH\""
+      log "Then: claudecode -v"
+      log "New terminals: open a new tab/window, or run: source ~/.bashrc   (or ~/.zshrc for zsh)"
+      log "Optional (after reviewing the script): curl -fsSL … -o install.sh && source install.sh"
+    fi
   fi
 }
 

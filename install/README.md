@@ -36,7 +36,19 @@ export CLAUDE_CODE_BIN_DIR="$HOME/bin"
 curl -fsSL ... | bash
 ```
 
-`install.sh` 会在 **`~/.bashrc`**（以及若存在则 **`~/.zshrc`**）末尾**幂等**追加一段 `export PATH="…/.local/bin:$PATH"`（带标记块，重复执行不会叠多行）。管道执行 `curl … | bash` **无法**改变你当前已打开的终端环境变量，新终端或执行 `source ~/.bashrc` 后可直接打 `claudecode`。
+`install.sh` 会在 **`~/.bashrc`**（以及若存在则 **`~/.zshrc`**）末尾**幂等**追加一段 `export PATH="…/.local/bin:$PATH"`（带标记块，重复执行不会叠多行）。
+
+**为何 `curl … | bash` 里不能自动 `export PATH`？** 管道会在**子进程**里跑脚本，子进程里的 `export` 影响不到你当前这个终端（进程模型限制，不是脚本偷懒）。**新开终端**会读 `~/.bashrc`，即可直接用 `claudecode`。
+
+**想装完立刻在当前终端可用：** 先下载再 **`source`（点命令）** 执行（执行前请自行看过脚本内容）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/install.sh -o install.sh
+# 建议先 less install.sh 检查
+source ./install.sh
+```
+
+在**交互式 bash** 且 **source** 时，脚本会检测到并自动 `export PATH`，本终端立即生效。
 
 - 跳过改 shell 配置：`CLAUDE_CODE_SKIP_SHELL_RC=1`
 - 更详细日志：`INSTALL_VERBOSE=1`
