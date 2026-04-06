@@ -17,7 +17,11 @@ import { registerCleanup } from './cleanupRegistry.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { getGlobalClaudeFile } from './env.js'
-import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
+import {
+  getClaudeConfigHomeDir,
+  isEnvDefinedFalsy,
+  isEnvTruthy,
+} from './envUtils.js'
 import { ConfigParseError, getErrnoCode } from './errors.js'
 import { writeFileSyncAndFlush_DEPRECATED } from './file.js'
 import { getFsImplementation } from './fsOperations.js'
@@ -1083,6 +1087,22 @@ export function getGlobalConfig(): GlobalConfig {
       getConfig(getGlobalClaudeFile(), createDefaultGlobalConfig),
     )
   }
+}
+
+/**
+ * Effective "copy on select" (mouse-up in alt-screen → OSC 52 / pbcopy 等写入剪贴板).
+ * Precedence:
+ *   1. `CLAUDE_CODE_COPY_ON_SELECT` when set and non-empty (after trim): 0/false/no/off → off; 1/true/yes/on → on; other strings fall through to (2)
+ *   2. `getGlobalConfig().copyOnSelect`
+ *   3. true
+ */
+export function resolveCopyOnSelectEnabled(): boolean {
+  const raw = process.env.CLAUDE_CODE_COPY_ON_SELECT
+  if (raw !== undefined && raw.trim() !== '') {
+    if (isEnvDefinedFalsy(raw)) return false
+    if (isEnvTruthy(raw)) return true
+  }
+  return getGlobalConfig().copyOnSelect ?? true
 }
 
 /**

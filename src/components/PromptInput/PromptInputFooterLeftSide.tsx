@@ -38,7 +38,11 @@ import { useVoiceState } from '../../context/voice.js';
 import { isFullscreenEnvEnabled } from '../../utils/fullscreen.js';
 import { isXtermJs } from '../../ink/terminal.js';
 import { useHasSelection, useSelection } from '../../ink/hooks/use-selection.js';
-import { getGlobalConfig, saveGlobalConfig } from '../../utils/config.js';
+import {
+  getGlobalConfig,
+  resolveCopyOnSelectEnabled,
+  saveGlobalConfig,
+} from '../../utils/config.js';
 import { getPlatform } from '../../utils/platform.js';
 import { PrBadge } from '../PrBadge.js';
 
@@ -416,7 +420,7 @@ function ModeIndicator({
   // fall through instead of showing an empty Byline. "esc to clear" was removed
   // (looked like "esc to interrupt" when idle; esc-clears-selection is standard
   // UX) leaving only ctrl+c (copyOnSelect off) and the xterm.js native-select hint.
-  const copyOnSelect = getGlobalConfig().copyOnSelect ?? true;
+  const copyOnSelect = resolveCopyOnSelectEnabled();
   const selectionHintHasContent = hasSelection && (!copyOnSelect || isXtermJs());
 
   // Warmup hint takes priority — when the user is actively holding
