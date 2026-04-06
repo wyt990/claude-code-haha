@@ -32,6 +32,9 @@ import {
 } from './model.js'
 import { has1mContext } from '../context.js'
 import { getGlobalConfig } from '../config.js'
+import { isOpenAICompatApiMode } from '../../services/api/openaiCompat/config.js'
+import { getCompatProviderEnvModelOptions } from '../../services/api/openaiCompat/compatRouting.js'
+import { getZenFreeModelPickerOptions } from '../../services/api/openaiCompat/zenFreeModels.js'
 import { getAntModels } from './antModels.js'
 
 // @[MODEL LAUNCH]: Update all the available and default model option strings below.
@@ -481,6 +484,19 @@ export function getModelOptions(fastMode = false): ModelOption[] {
   for (const opt of getGlobalConfig().additionalModelOptionsCache ?? []) {
     if (!options.some(existing => existing.value === opt.value)) {
       options.push(opt)
+    }
+  }
+
+  if (isOpenAICompatApiMode()) {
+    for (const opt of getCompatProviderEnvModelOptions()) {
+      if (!options.some(existing => existing.value === opt.value)) {
+        options.push(opt)
+      }
+    }
+    for (const opt of getZenFreeModelPickerOptions()) {
+      if (!options.some(existing => existing.value === opt.value)) {
+        options.push(opt)
+      }
     }
   }
 

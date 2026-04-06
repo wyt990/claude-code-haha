@@ -26,10 +26,14 @@ export function getOpenAIBaseUrlRaw(): string {
  * - 若 base 以 `/v1` 结尾：`${base}/chat/completions`
  * - 否则：`${base}/v1/chat/completions`
  */
-export function getOpenAIChatCompletionsUrl(): string {
-  const base = getOpenAIBaseUrlRaw()
+export function buildOpenAIChatCompletionsUrlFromBase(rawBase: string): string {
+  const base = rawBase.replace(/\/+$/, '')
   const withV1 = base.toLowerCase().endsWith('/v1') ? base : `${base}/v1`
   return `${withV1}/chat/completions`
+}
+
+export function getOpenAIChatCompletionsUrl(): string {
+  return buildOpenAIChatCompletionsUrlFromBase(getOpenAIBaseUrlRaw())
 }
 
 /** Authorization / x-api-key，与 Anthropic 客户端惯例一致。 */

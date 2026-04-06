@@ -2436,6 +2436,10 @@ async function run(): Promise<CommanderCommand> {
       // Fetch bootstrap data from the server and update all cache values.
       void fetchBootstrapData();
 
+      void import('./services/api/openaiCompat/zenFreeModels.js').then(m =>
+        m.refreshZenFreeModelList(),
+      );
+
       // TODO: Consolidate other prefetches into a single bootstrap request.
       void prefetchPassesEligibility();
       if (!getFeatureValue_CACHED_MAY_BE_STALE('tengu_miraculo_the_bard', false)) {

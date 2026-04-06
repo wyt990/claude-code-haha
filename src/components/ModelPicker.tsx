@@ -10,6 +10,7 @@ import { useKeybindings } from '../keybindings/useKeybinding.js';
 import { useAppState, useSetAppState } from '../state/AppState.js';
 import { convertEffortValueToLevel, type EffortLevel, getDefaultEffortForModel, modelSupportsEffort, modelSupportsMaxEffort, resolvePickerEffortPersistence, toPersistableEffort } from '../utils/effort.js';
 import { getDefaultMainLoopModel, type ModelSetting, modelDisplayString, parseUserSpecifiedModel } from '../utils/model/model.js';
+import { useZenModelOptionsReload } from '../hooks/useZenModelOptionsReload.js';
 import { getModelOptions } from '../utils/model/modelOptions.js';
 import { getSettingsForSource, updateSettingsForSource } from '../utils/settings/settings.js';
 import { ConfigurableShortcutHint } from './ConfigurableShortcutHint.js';
@@ -64,11 +65,13 @@ export function ModelPicker(t0) {
     t1 = $[1];
   }
   const [effort, setEffort] = useState(t1);
-  const t2 = isFastMode ?? false;
+  const zenOptsTick = useZenModelOptionsReload();
+  const fastModeForOptions = isFastMode ?? false;
+  const modelOptionsCacheKey = `${String(fastModeForOptions)}:${zenOptsTick}`;
   let t3;
-  if ($[2] !== t2) {
-    t3 = getModelOptions(t2);
-    $[2] = t2;
+  if ($[2] !== modelOptionsCacheKey) {
+    t3 = getModelOptions(fastModeForOptions);
+    $[2] = modelOptionsCacheKey;
     $[3] = t3;
   } else {
     t3 = $[3];

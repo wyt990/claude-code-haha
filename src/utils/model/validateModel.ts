@@ -10,6 +10,19 @@ import {
   AuthenticationError,
 } from '@anthropic-ai/sdk'
 import { getModelStrings } from './modelStrings.js'
+import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+import { isOpenAICompatApiMode } from '../../services/api/openaiCompat/config.js'
+import { openAICompatNonStreamingRequest } from '../../services/api/openaiCompat/openaiNonStreaming.js'
+import {
+  isCompatEnvProviderRoutedModel,
+  resolveOpenAICompatRouting,
+} from '../../services/api/openaiCompat/compatRouting.js'
+import {
+  ensureZenFreeModelListLoaded,
+  isKnownZenModelId,
+  isZenFreeModelsFeatureEnabled,
+  isZenRoutedModelId,
+} from '../../services/api/openaiCompat/zenFreeModels.js'
 
 // Cache valid models to avoid repeated API calls
 const validModelCache = new Map<string, boolean>()
@@ -51,6 +64,52 @@ export async function validateModel(
     return { valid: true }
   }
 
+  if (isOpenAICompatApiMode()) {
+    if (isZenRoutedModelId(normalizedModel)) {
+      if (!isZenFreeModelsFeatureEnabled()) {
+        return {
+          valid: false,
+          error:
+            'Zen 免费模型未启用：请设置 CLAUDE_CODE_ZEN_FREE_MODELS=1，并确保可访问 opencode.ai',
+        }
+      }
+      await ensureZenFreeModelListLoaded()
+      if (!isKnownZenModelId(normalizedModel)) {
+        return {
+          valid: false,
+          error:
+            '该 Zen 模型不在当前已拉取的列表中，或列表尚未加载。请检查网络，或确认未启用 CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC。',
+        }
+      }
+      validModelCache.set(normalizedModel, true)
+      return { valid: true }
+    }
+    if (isCompatEnvProviderRoutedModel(normalizedModel)) {
+      try {
+        resolveOpenAICompatRouting(normalizedModel)
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        return { valid: false, error: msg }
+      }
+      validModelCache.set(normalizedModel, true)
+      return { valid: true }
+    }
+    const streamParams: BetaMessageStreamParams = {
+      model: normalizedModel,
+      max_tokens: 1,
+      messages: [{ role: 'user', content: 'Hi' }],
+    }
+    try {
+      await openAICompatNonStreamingRequest(
+        streamParams,
+        AbortSignal.timeout(15_000),
+      )
+      validModelCache.set(normalizedModel, true)
+      return { valid: true }
+    } catch (error) {
+      return handleValidationError(error, normalizedModel)
+    }
+  }
 
   // Try to make an actual API call with minimal parameters
   try {

@@ -23,3 +23,8 @@ Object.assign(globalThis, {
     BUILD_IS_ANT: false as boolean,
   },
 });
+
+// OpenCode Zen 免费模型列表：尽早后台拉取（仅内存，不写 .env）；与 main 中预取互为补充。
+void import('./src/services/api/openaiCompat/zenFreeModels.js').then(m => {
+  void m.refreshZenFreeModelList()
+})

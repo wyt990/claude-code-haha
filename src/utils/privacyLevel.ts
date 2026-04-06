@@ -1,3 +1,5 @@
+import { isEnvTruthy } from './envUtils.js'
+
 /**
  * Privacy level controls how much nonessential network traffic and telemetry
  * Claude Code generates.
@@ -11,17 +13,20 @@
  *                       (telemetry + auto-updates, grove, release notes, model capabilities, etc.).
  *
  * The resolved level is the most restrictive signal from:
- *   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC  →  essential-traffic
- *   DISABLE_TELEMETRY                         →  no-telemetry
+ *   CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1|true|…  →  essential-traffic
+ *   DISABLE_TELEMETRY=1|true|…                        →  no-telemetry
+ *
+ * 必须用 isEnvTruthy：若写成 `…=0`，字符串 "0" 在 JS 中仍为 truthy，会误开「仅必要流量」
+ *（导致 Zen 列表等预取被跳过）。
  */
 
 type PrivacyLevel = 'default' | 'no-telemetry' | 'essential-traffic'
 
 export function getPrivacyLevel(): PrivacyLevel {
-  if (process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC) {
+  if (isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)) {
     return 'essential-traffic'
   }
-  if (process.env.DISABLE_TELEMETRY) {
+  if (isEnvTruthy(process.env.DISABLE_TELEMETRY)) {
     return 'no-telemetry'
   }
   return 'default'
@@ -48,7 +53,7 @@ export function isTelemetryDisabled(): boolean {
  * or null if unrestricted. Used for user-facing "unset X to re-enable" messages.
  */
 export function getEssentialTrafficOnlyReason(): string | null {
-  if (process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC) {
+  if (isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC)) {
     return 'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC'
   }
   return null

@@ -11,11 +11,8 @@ import type {
 import { Stream } from '@anthropic-ai/sdk/streaming.mjs'
 import { randomUUID } from 'crypto'
 import { buildOpenAIChatCompletionBody } from './anthropicParamsToOpenAI.js'
-import {
-  getOpenAIAuthHeaders,
-  getOpenAIChatCompletionsUrl,
-  mergeAbortSignals,
-} from './config.js'
+import { mergeAbortSignals } from './config.js'
+import { resolveOpenAICompatRouting } from './compatRouting.js'
 import { mergeOpenAICompatExtraBody } from './extraBody.js'
 
 function emptyBetaUsage(): BetaUsage {
@@ -315,12 +312,17 @@ export async function openAICompatStreamingRequest(
   signal: AbortSignal,
   fetchOverride?: typeof fetch,
 ): Promise<OpenAICompatStreamResult> {
-  const url = getOpenAIChatCompletionsUrl()
+  const route = resolveOpenAICompatRouting(String(params.model))
+  const bodyParams =
+    route.bodyModel === params.model
+      ? params
+      : { ...params, model: route.bodyModel }
+  const url = route.url
   const headers: Record<string, string> = {
-    ...getOpenAIAuthHeaders(),
+    ...route.headers,
     'Content-Type': 'application/json',
   }
-  const body = buildOpenAIChatCompletionBody(params, { stream: true })
+  const body = buildOpenAIChatCompletionBody(bodyParams, { stream: true })
   mergeOpenAICompatExtraBody(body)
   body.stream = true
 
@@ -357,7 +359,7 @@ export async function openAICompatStreamingRequest(
     })
   }
 
-  const model = String(params.model)
+  const model = String(bodyParams.model)
   const requestId = response.headers.get('x-request-id')
 
   const stream = new Stream(

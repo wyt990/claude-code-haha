@@ -2,11 +2,8 @@ import { APIError } from '@anthropic-ai/sdk'
 import type { BetaMessageStreamParams } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import type { BetaMessage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { buildOpenAIChatCompletionBody } from './anthropicParamsToOpenAI.js'
-import {
-  getOpenAIAuthHeaders,
-  getOpenAIChatCompletionsUrl,
-  mergeAbortSignals,
-} from './config.js'
+import { mergeAbortSignals } from './config.js'
+import { resolveOpenAICompatRouting } from './compatRouting.js'
 import { mergeOpenAICompatExtraBody } from './extraBody.js'
 import { openAICompletionJsonToBetaMessage } from './openaiResponseToBetaMessage.js'
 
@@ -28,13 +25,18 @@ export async function openAICompatNonStreamingRequest(
   signal: AbortSignal,
   fetchOverride?: typeof fetch,
 ): Promise<BetaMessage> {
-  const body = buildOpenAIChatCompletionBody(params, { stream: false })
+  const route = resolveOpenAICompatRouting(String(params.model))
+  const bodyParams =
+    route.bodyModel === params.model
+      ? params
+      : { ...params, model: route.bodyModel }
+  const body = buildOpenAIChatCompletionBody(bodyParams, { stream: false })
   mergeOpenAICompatExtraBody(body)
   body.stream = false
 
-  const url = getOpenAIChatCompletionsUrl()
+  const url = route.url
   const headers: Record<string, string> = {
-    ...getOpenAIAuthHeaders(),
+    ...route.headers,
     'Content-Type': 'application/json',
   }
 
@@ -69,7 +71,7 @@ export async function openAICompatNonStreamingRequest(
     }
 
     const json = (await response.json()) as Record<string, unknown>
-    return openAICompletionJsonToBetaMessage(json, String(params.model))
+    return openAICompletionJsonToBetaMessage(json, String(bodyParams.model))
   } finally {
     clearTimeout(timer)
   }
