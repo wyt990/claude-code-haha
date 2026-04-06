@@ -310,6 +310,8 @@ bun build --compile ./src/entrypoints/cli.tsx --outfile=claudecode.exe --target=
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/install.sh | bash
+
+# 安装完成后配置文件默认位置：/root/.local/share/claude-code-local/.env
 ```
 
 **Windows（PowerShell）：**

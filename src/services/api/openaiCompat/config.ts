@@ -22,14 +22,16 @@ export function getOpenAIBaseUrlRaw(): string {
 }
 
 /**
- * `POST .../v1/chat/completions` 的完整 URL。
- * - 若 base 以 `/v1` 结尾：`${base}/chat/completions`
- * - 否则：`${base}/v1/chat/completions`
+ * `POST .../chat/completions` 的完整 URL（OpenAI 兼容）。
+ * - 若 base 已以 `/v1`、`/v2`… 结尾：直接 `${base}/chat/completions`（避免讯飞等 `/v2` 被误拼成 `/v2/v1/chat/completions`）
+ * - 否则：补 `${base}/v1/chat/completions`
  */
 export function buildOpenAIChatCompletionsUrlFromBase(rawBase: string): string {
   const base = rawBase.replace(/\/+$/, '')
-  const withV1 = base.toLowerCase().endsWith('/v1') ? base : `${base}/v1`
-  return `${withV1}/chat/completions`
+  if (/\/v\d+$/i.test(base)) {
+    return `${base}/chat/completions`
+  }
+  return `${base}/v1/chat/completions`
 }
 
 export function getOpenAIChatCompletionsUrl(): string {
