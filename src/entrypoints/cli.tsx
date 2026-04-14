@@ -44,6 +44,13 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Fast-path for --list-models: show model configuration and available models
+  if (args.length === 1 && args[0] === '--list-models') {
+    const { listModels } = await import('../cli/listModels.js');
+    await listModels();
+    return;
+  }
+
   // For all other paths, load the startup profiler
   const {
     profileCheckpoint
