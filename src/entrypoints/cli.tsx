@@ -3,6 +3,8 @@
 import '../../preload.js';
 import { feature } from 'bun:bundle';
 
+import { shouldHandleManagedEnvCli } from '../cli/managedEnvCliFlags.js';
+
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 process.env.COREPACK_ENABLE_AUTO_PIN = '0';
@@ -48,6 +50,13 @@ async function main(): Promise<void> {
   if (args.length === 1 && args[0] === '--list-models') {
     const { listModels } = await import('../cli/listModels.js');
     await listModels();
+    return;
+  }
+
+  // Fast-path: 安装前缀 `.env` 维护（见 docs/环境变量与模型配置管理方案.md）
+  if (shouldHandleManagedEnvCli(args)) {
+    const { runManagedEnvCli } = await import('../cli/managedEnvCli.js');
+    await runManagedEnvCli(args);
     return;
   }
 

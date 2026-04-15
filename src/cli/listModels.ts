@@ -76,8 +76,15 @@ export async function listModels(): Promise<void> {
   console.log(`  当前模式: ${isOpenAICompatApiMode() ? chalk.green('已启用') : chalk.gray('未启用')}`)
 
   if (isOpenAICompatApiMode()) {
-    console.log(`  CLAUDE_CODE_OPENAI_COMPAT_BASE_URL: ${chalk.magenta(process.env.CLAUDE_CODE_OPENAI_COMPAT_BASE_URL || '(未设置)')}`)
-    console.log(`  CLAUDE_CODE_OPENAI_COMPAT_API_KEY: ${chalk.magenta(process.env.CLAUDE_CODE_OPENAI_COMPAT_API_KEY || '(未设置)')}`)
+    console.log(`  CLAUDE_CODE_OPENAI_BASE_URL: ${chalk.magenta(process.env.CLAUDE_CODE_OPENAI_BASE_URL || '(未设置)')}`)
+    console.log(`  （鉴权使用 ANTHROPIC_AUTH_TOKEN / ANTHROPIC_API_KEY，见 openaiCompat/config.ts）`)
+  }
+
+  const installPrefix = process.env.CLAUDE_CODE_INSTALL_PREFIX?.trim()
+  if (installPrefix) {
+    console.log(`  CLAUDE_CODE_INSTALL_PREFIX: ${chalk.cyan(installPrefix)}（安装目录 .env 由 preload 注入；可能与仓库 --env-file 叠加）`)
+  } else {
+    console.log(`  CLAUDE_CODE_INSTALL_PREFIX: ${chalk.gray('(未设置 — 非编译安装前缀场景)')}`)
   }
 
   // Zen 免费模型配置

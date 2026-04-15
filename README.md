@@ -322,6 +322,8 @@ irm https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/insta
 
 安装后：**当前工作目录**即你打开的项目目录；**API 等配置**写在安装目录下的 `.env`。启动器会设置 **`CLAUDE_CODE_INSTALL_PREFIX`**，运行时从该目录加载 `.env`（不覆盖你已在 shell 里导出的变量）。解析 GitHub API 需要 **`jq` 或 `python3`**（与 `curl`、`tar` 一并说明见 `install/README.md`）。
 
+**安装目录 `.env` 的命令行维护**：在已设置 `CLAUDE_CODE_INSTALL_PREFIX` 的前提下，可执行 `claudecode --help` 查看 `--env-list`、`--env-set`、`--add-provider` 等与安装前缀 `.env` 相关的子命令。其中 **`--force` 仅作用于上述 env 维护子命令**（用于非交互场景下跳过删除关键键、导出含密钥等确认），**不**改变普通交互/无头会话的其它行为。完整说明见 **`docs/环境变量与模型配置管理方案.md`**。
+
 ---
 
 ## 环境变量说明

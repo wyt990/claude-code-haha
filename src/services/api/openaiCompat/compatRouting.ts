@@ -21,13 +21,16 @@ export type CompatProviderJsonEntry = {
   models?: string[]
 }
 
-function parseCompatProvidersJson(): CompatProviderJsonEntry[] {
-  const raw = process.env.CLAUDE_CODE_COMPAT_PROVIDERS_JSON?.trim()
-  if (!raw) {
+/** 从原始 JSON 字符串解析（供 CLI 读写安装前缀 `.env`；不读 `process.env`）。 */
+export function parseCompatProvidersJsonString(
+  raw: string | undefined,
+): CompatProviderJsonEntry[] {
+  const t = raw?.trim()
+  if (!t) {
     return []
   }
   try {
-    const parsed = JSON.parse(raw) as unknown
+    const parsed = JSON.parse(t) as unknown
     if (!Array.isArray(parsed)) {
       return []
     }
@@ -63,6 +66,10 @@ function parseCompatProvidersJson(): CompatProviderJsonEntry[] {
   } catch {
     return []
   }
+}
+
+function parseCompatProvidersJson(): CompatProviderJsonEntry[] {
+  return parseCompatProvidersJsonString(process.env.CLAUDE_CODE_COMPAT_PROVIDERS_JSON)
 }
 
 export const getCompatProvidersFromEnv = memoize(parseCompatProvidersJson)

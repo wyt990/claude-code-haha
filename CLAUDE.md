@@ -2,6 +2,32 @@
 
 此文件为 Claude Code (claude.ai/code) 在此仓库中工作提供指导。
 
+## 1. 先想后写（Think Before Coding）
+**不要假设，不要藏着疑惑，把取舍摆出来。**
+动手之前：- 明确说出你的假设，如果不确定，就问。- 如果存在多种理解，把它们列出来，不要自己悄悄选一个。- 如果有更简单的方案，说出来，推一下。- 如果有什么搞不清楚，停下来，说清楚哪里不明白，再问。
+
+## 2. 能简则简（Simplicity First）
+**用最少的代码解决问题，不做多余的事。**
+- 不加用户没要求的功能。- 不为一次性逻辑搭抽象层。- 不预加"灵活性"或"可配置性"。
+- 不为不可能发生的场景写错误处理。- 如果写了 200 行但 50 行够用，重写。
+自检标准：一个高级工程师看了会觉得过度设计吗？如果会，简化。
+
+## 3. 精准修改（Surgical Changes）
+**只动你该动的地方，只清理你自己制造的烂摊子。**
+修改已有代码时：- 不要"顺手优化"旁边的代码、注释或格式。
+- 不要重构没有问题的逻辑。- 保持原有风格，即使你觉得可以写得更好。- 发现不相关的死代码，提一句，不要擅自删。当你的改动制造了孤儿代码时：- 清掉你的改动造成的多余 import、变量、函数。
+- 原来就有的死代码，不要动，除非被要求。检验标准：每一处改动都能直接追溯到用户的请求。
+
+## 4. 目标驱动执行（Goal-Driven Execution）
+**定义成功标准，循环直到验证通过。**
+把指令转化成可验证的目标：- "加一个校验" → "先写覆盖非法输入的测试，再让测试通过"
+- "修这个 bug" → "先写能复现 bug 的测试，再修"
+- "重构 X" → "确保重构前后测试都通过"
+多步骤任务，列出简要计划：
+1. [步骤] → 验证：[检查项]
+2. [步骤] → 验证：[检查项]
+3. [步骤] → 验证：[检查项]
+
 ## 构建与运行
 
 ```bash
@@ -68,13 +94,35 @@ CLAUDE_CODE_USE_OPENAI_COMPAT_API=1  # 设置为启用 OpenAI 兼容网关
 - `src/utils/` - 工具函数，包括 `anthropicBaseUrl.ts` 用于端点规范化
 
 **关键配置文件：**
-- `preload.ts` - Bun preload 脚本（设置 `MACRO` 全局变量、环境变量规范化）
-- `bunfig.toml` - Bun 配置
-- `tsconfig.json` - TypeScript 路径（映射 `src/*` 和 native 模块 stubs）
-- `stubs/` - Native 模块桩文件（`color-diff-napi`、`modifiers-napi`）
+- `preload.ts` - Bun preload 脚本，执行以下初始化：
+  - 设置 `MACRO` 全局变量（VERSION、PACKAGE_URL、BUILD_TIME 等，在 `bun build --compile` 时内联）
+  - 调用 `anthropicBaseUrl.ts` 规范化 `ANTHROPIC_BASE_URL`（处理 `/v1` 末尾）
+  - 从 `CLAUDE_CODE_INSTALL_PREFIX` 目录加载 `.env`（Release 安装场景）
+  - 后台预取 OpenCode Zen 免费模型列表
+- `bunfig.toml` - Bun 配置（preload 入口）
+- `tsconfig.json` - TypeScript 路径映射（`src/*` + native 模块 stubs）
+- `stubs/` - Native 模块桩文件，替换无法在本地运行的原生扩展：
+  - `color-diff-napi.ts`、`modifiers-napi.ts` - 终端颜色/按键修饰检测
+  - `audio-capture-napi.ts`、`image-processor-napi.ts` - 语音输入/图像处理（Windows/Linux 不完整支持）
+  - `sharp.ts`、`turndown.ts` 等 - 图片转换/HTML 解析工具
 
 **OpenAI 兼容模式：**
 当 `CLAUDE_CODE_USE_OPENAI_COMPAT_API=1` 时，请求通过 `src/services/api/openaiCompat/` 路由，该模块将 Anthropic Messages API 参数转换为 OpenAI Chat Completions 格式，并将 SSE 响应转换回 Anthropic 流事件。完整架构详情见 `docs/OpenAI 兼容 API 接入方案.md`。
+
+**请求生命周期（简化）：**
+```
+用户输入 → PromptInput → handleEnter() → Agent 循环
+  → queryModel (claude.ts) → API 请求
+  → 流式响应 → 解析为 StreamEvent
+  → 更新 UI 组件 (Ink 渲染)
+```
+
+**核心服务层：**
+- `src/services/api/claude.ts` - 主 API 客户端，处理消息流、工具调用、重试逻辑
+- `src/services/api/client.ts` - 客户端工厂（`getAnthropicClient`）
+- `src/services/mcp/` - MCP 服务器管理（资源发现、调用）
+- `src/services/oauth/` - OAuth 认证（Anthropic、GitHub 等）
+- `src/utils/model/providers.ts` - 模型提供商检测（Anthropic/Bedrock/Vertex/自定义）
 
 ## 常用操作
 
@@ -82,6 +130,10 @@ CLAUDE_CODE_USE_OPENAI_COMPAT_API=1  # 设置为启用 OpenAI 兼容网关
 ```bash
 bun run tsc --noEmit
 ```
+
+**测试与 Lint：**
+- 本项目无单元测试框架，package.json 中无 `test` 脚本
+- 无 ESLint/Prettier 配置，代码风格由 TypeScript 严格模式保证
 
 **添加新工具：**
 1. 在 `src/tools/YourTool/` 中创建工具类
@@ -95,6 +147,15 @@ bun run tsc --noEmit
 - 主 Anthropic 客户端：`src/services/api/claude.ts`
 - OpenAI 兼容层：`src/services/api/openaiCompat/`
 - 端点规范化：`src/utils/anthropicBaseUrl.ts`
+
+**Feature Flags 与条件编译：**
+代码库中大量使用 `feature()` 函数（来自 `bun:bundle`）进行条件导入和逻辑分支，例如：
+- `feature('PROACTIVE')` / `feature('KAIROS')` - Proactive 功能和 Kairos 模式
+- `feature('AGENT_TRIGGERS')` - Agent 触发器（Cron 任务）
+- `feature('VOICE_MODE')` - 语音模式
+- `feature('BRIDGE_MODE')` - Bridge 模式（远程连接）
+
+这些 flag 在构建时被 Tree-shaking，不会出现在外部构建产物中。开发时通过环境变量控制（如 `USER_TYPE=ant`）。
 
 ## 打包为独立可执行文件
 

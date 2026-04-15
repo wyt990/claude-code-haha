@@ -1,6 +1,6 @@
 {
   "name": "claude-code-local",
-  "version": "100.0.6-local",
+  "version": "100.0.7-local",
   "private": true,
   "type": "module",
   "bin": {

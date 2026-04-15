@@ -8,6 +8,7 @@
 |------|------|
 | **工作目录** | 你在终端里执行 `claudecode` 时的 **当前目录** 即为 Claude Code 打开的项目目录（与源码版 `bin/claudecode` 一致，**不会** `cd` 到安装目录）。 |
 | **配置文件** | API Key 等写在安装目录下的 **`.env`**（与项目目录分离）。启动器会设置 `CLAUDE_CODE_INSTALL_PREFIX`，由 `preload` 在进程内加载该目录中的 `.env`。 |
+| **`.env` 命令行** | 运行 `claudecode --help` 可见 `--env-list`、`--env-set`、`--add-provider` 等；**`--force` 仅用于这些安装前缀 env 子命令**（跳过危险操作确认），详见仓库 `docs/环境变量与模型配置管理方案.md`。 |
 | **平台** | 与 `scripts/build-release.ts` 的 `archiveSlug` 一致：`linuxX64`、`linuxX64-musl`、`linuxArm64`、`darwinX64`、`darwinArm64`、`windowsX64`。 |
 
 ## 一键安装
