@@ -4,9 +4,13 @@
  * beside the binary while the process cwd stays the user's project directory.
  *
  * Does not override keys already present in the environment (shell / CI wins).
+ *
+ * 引号包裹的值须与 `envFileParser.unquoteEnvLineValue` 一致地反转义（尤其 JSON 的 `\"`），
+ * 否则与 Bun `--env-file` 对同一 .env 的解析结果会不一致，导致如 CLAUDE_CODE_COMPAT_PROVIDERS_JSON 无法 JSON.parse。
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { unquoteEnvLineValue } from '../utils/envFileParser.js'
 
 function applyInstallPrefixEnvFile(): void {
   const prefix = process.env.CLAUDE_CODE_INSTALL_PREFIX?.trim()
@@ -31,14 +35,8 @@ function applyInstallPrefixEnvFile(): void {
     if (!key) continue
     if (key in process.env) continue
 
-    let val = trimmed.slice(eq + 1).trim()
-    if (
-      (val.startsWith('"') && val.endsWith('"')) ||
-      (val.startsWith("'") && val.endsWith("'"))
-    ) {
-      val = val.slice(1, -1)
-    }
-    process.env[key] = val
+    const valRaw = trimmed.slice(eq + 1).trim()
+    process.env[key] = unquoteEnvLineValue(valRaw)
   }
 }
 
