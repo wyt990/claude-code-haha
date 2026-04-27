@@ -8,6 +8,14 @@ export const ZEN_OPENAI_BASE_URL = 'https://opencode.ai/zen/v1'
 
 const ZEN_MODELS_URL = 'https://opencode.ai/zen/v1/models'
 
+/**
+ * `GET /v1/models` 可能包含非免费或限额策略不同的条目。当前按 OpenCode 侧习惯：
+ * 仅当模型 id 中带有 `free`（不区分大小写，比较前已 toLowerCase）时视为本功能展示的「免费」项。
+ */
+function isZenIdListedAsFreeInPicker(id: string): boolean {
+  return id.toLowerCase().includes('free')
+}
+
 let zenModelIdsLower: string[] = []
 let zenLoadAttempted = false
 
@@ -38,11 +46,19 @@ export async function refreshZenFreeModelList(): Promise<void> {
       throw new Error(`HTTP ${r.status}`)
     }
     const j = (await r.json()) as { data?: Array<{ id?: string }> }
-    const ids = (j.data ?? [])
+    const rawIds = (j.data ?? [])
       .map(x => (typeof x.id === 'string' ? x.id.trim().toLowerCase() : ''))
       .filter(Boolean)
+    const ids = rawIds.filter(isZenIdListedAsFreeInPicker)
+    if (rawIds.length > 0 && ids.length === 0) {
+      logForDebugging(
+        `[Zen] Filtered 0 / ${rawIds.length} id(s) (only ids containing "free" are shown in the picker)`,
+      )
+    }
     zenModelIdsLower = ids
-    logForDebugging(`[Zen] Loaded ${ids.length} free model id(s)`)
+    logForDebugging(
+      `[Zen] Loaded ${ids.length} free model id(s) (${rawIds.length} from API, after free-name filter)`,
+    )
   } catch (e) {
     logError(e)
     zenModelIdsLower = []
