@@ -25,6 +25,8 @@ import {
 import {
   getZenFreeModelPickerOptions,
   isZenFreeModelsFeatureEnabled,
+  ensureZenFreeModelListLoaded,
+  forceRefreshZenFreeModelList,
 } from '../services/api/openaiCompat/zenFreeModels.js'
 import {
   getCompatProviderEnvModelOptions,
@@ -107,6 +109,11 @@ async function collectModelData(): Promise<ListModelsResult> {
   }))
 
   // 方案二 & 方案四：Zen 免费模型显示原始名称，且独立于 OpenAI 兼容模式
+  // 在获取 Zen 模型前，先确保模型列表已加载（Zen 模型不写 .env，需运行时拉取）
+  // 使用 forceRefresh 强制刷新，确保 --list-models 始终获取最新列表
+  if (zenEnabled) {
+    await forceRefreshZenFreeModelList()
+  }
   const zenModels = zenEnabled ? getZenFreeModelPickerOptions().map(opt => {
     // 从 `zen/<id>` 中提取原始模型 ID
     const originalName = opt.value.startsWith('zen/') ? opt.value.slice(4) : opt.value

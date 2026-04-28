@@ -107,3 +107,45 @@ export async function ensureZenFreeModelListLoaded(): Promise<void> {
   }
   await refreshZenFreeModelList()
 }
+
+/**
+ * 强制刷新 Zen 免费模型列表（用于 --list-models 命令）
+ * 即使之前已尝试加载过，也会重新发起请求
+ */
+export async function forceRefreshZenFreeModelList(): Promise<void> {
+  if (!isZenFreeModelsFeatureEnabled()) {
+    zenModelIdsLower = []
+    return
+  }
+  if (isEssentialTrafficOnly()) {
+    logForDebugging('[Zen] Skipped model list fetch: essential-traffic-only')
+    zenLoadAttempted = true
+    return
+  }
+  zenLoadAttempted = true
+  try {
+    const r = await fetch(ZEN_MODELS_URL, {
+      headers: { Accept: 'application/json' },
+    })
+    if (!r.ok) {
+      throw new Error(`HTTP ${r.status}`)
+    }
+    const j = (await r.json()) as { data?: Array<{ id?: string }> }
+    const rawIds = (j.data ?? [])
+      .map(x => (typeof x.id === 'string' ? x.id.trim().toLowerCase() : ''))
+      .filter(Boolean)
+    const ids = rawIds.filter(isZenIdListedAsFreeInPicker)
+    if (rawIds.length > 0 && ids.length === 0) {
+      logForDebugging(
+        `[Zen] Filtered 0 / ${rawIds.length} id(s) (only ids containing "free" are shown in the picker)`,
+      )
+    }
+    zenModelIdsLower = ids
+    logForDebugging(
+      `[Zen] Loaded ${ids.length} free model id(s) (${rawIds.length} from API, after free-name filter)`,
+    )
+  } catch (e) {
+    logError(e)
+    zenModelIdsLower = []
+  }
+}
