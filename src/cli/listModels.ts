@@ -33,123 +33,256 @@ import {
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js'
 import { isClaudeAISubscriber, isMaxSubscriber, isTeamPremiumSubscriber, getSubscriptionType } from '../utils/auth.js'
 
+interface ListModelsOptions {
+  json?: boolean
+}
+
+interface ListModelsResult {
+  current: {
+    userSpecified: string | null
+    parsed: string
+    default: string
+    defaultSetting: string | null
+  }
+  environment: Record<string, string>
+  openaiCompat: {
+    enabled: boolean
+    baseUrl?: string
+  }
+  zenFreeModels: {
+    enabled: boolean
+    baseUrl: string
+    modelsCount: number
+    models?: Array<{label: string, value: string, description?: string}>
+  }
+  provider: string
+  auth: {
+    isClaudeAISubscriber: boolean
+    subscriptionType?: string
+    isMaxSubscriber: boolean
+    isTeamPremiumSubscriber: boolean
+  }
+  settings: {
+    model?: string
+    availableModels?: string[]
+  }
+  modelStrings: Record<string, string>
+  modelAliases: {
+    available: string[]
+    resolved: Record<string, string>
+  }
+  defaults: {
+    opus: string
+    sonnet: string
+    haiku: string
+  }
+  availableModels: Array<{label: string, value: string | null, description?: string}>
+  openaiCompatModels?: Array<{label: string, value: string, description?: string}>
+}
+
 /**
- * 输出 --list-models 信息
+ * 收集模型配置数据
  */
-export async function listModels(): Promise<void> {
-  enableConfigs()
-
-  console.log(chalk.bold('\n=== Claude Code 模型配置信息 ===\n'))
-
-  // 1. 当前配置的模型
-  console.log(chalk.bold(chalk.cyan('当前使用的模型')))
+async function collectModelData(): Promise<ListModelsResult> {
   const userSpecifiedModel = getUserSpecifiedModelSetting()
   const currentModel = getMainLoopModel()
   const defaultModel = getDefaultMainLoopModel()
   const defaultModelSetting = getDefaultMainLoopModelSetting()
+  const provider = getAPIProvider()
+  const settings = getSettings_DEPRECATED() || {}
+  const modelStrings = getModelStrings()
+  const modelOptions = getModelOptions(false)
 
-  if (userSpecifiedModel !== undefined && userSpecifiedModel !== null) {
-    console.log(`  用户指定模型: ${chalk.green(userSpecifiedModel)}`)
-    console.log(`  解析后的模型: ${chalk.green(renderModelName(currentModel))}`)
-  } else {
-    console.log(`  当前模型: ${chalk.green(renderModelName(currentModel))} (使用默认值)`)
+  const result: ListModelsResult = {
+    current: {
+      userSpecified: userSpecifiedModel ?? null,
+      parsed: renderModelName(currentModel),
+      default: renderModelName(defaultModel),
+      defaultSetting: defaultModelSetting ?? null,
+    },
+    environment: {
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '(未设置)',
+      ANTHROPIC_AUTH_TOKEN: process.env.ANTHROPIC_AUTH_TOKEN || '(未设置)',
+      ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL || '(未设置)',
+      ANTHROPIC_MODEL: process.env.ANTHROPIC_MODEL || '(未设置)',
+      ANTHROPIC_DEFAULT_OPUS_MODEL: process.env.ANTHROPIC_DEFAULT_OPUS_MODEL || '(未设置)',
+      ANTHROPIC_DEFAULT_SONNET_MODEL: process.env.ANTHROPIC_DEFAULT_SONNET_MODEL || '(未设置)',
+      ANTHROPIC_DEFAULT_HAIKU_MODEL: process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || '(未设置)',
+      ANTHROPIC_CUSTOM_MODEL_OPTION: process.env.ANTHROPIC_CUSTOM_MODEL_OPTION || '(未设置)',
+      ANTHROPIC_CUSTOM_MODEL_OPTION_NAME: process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME || '(未设置)',
+      ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION: process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION || '(未设置)',
+      CLAUDE_CODE_USE_OPENAI_COMPAT_API: process.env.CLAUDE_CODE_USE_OPENAI_COMPAT_API || '(未设置)',
+      CLAUDE_CODE_OPENAI_BASE_URL: process.env.CLAUDE_CODE_OPENAI_BASE_URL || '(未设置)',
+      CLAUDE_CODE_ZEN_FREE_MODELS: process.env.CLAUDE_CODE_ZEN_FREE_MODELS || '(未设置)',
+      CLAUDE_CODE_INSTALL_PREFIX: process.env.CLAUDE_CODE_INSTALL_PREFIX || '(未设置)',
+    },
+    openaiCompat: {
+      enabled: isOpenAICompatApiMode(),
+      baseUrl: process.env.CLAUDE_CODE_OPENAI_BASE_URL || undefined,
+    },
+    zenFreeModels: {
+      enabled: isZenFreeModelsFeatureEnabled(),
+      baseUrl: ZEN_OPENAI_BASE_URL,
+      modelsCount: 0,
+    },
+    provider,
+    auth: {
+      isClaudeAISubscriber: isClaudeAISubscriber(),
+      subscriptionType: getSubscriptionType() ?? undefined,
+      isMaxSubscriber: isMaxSubscriber(),
+      isTeamPremiumSubscriber: isTeamPremiumSubscriber(),
+    },
+    settings: {
+      model: settings.model,
+      availableModels: settings.availableModels,
+    },
+    modelStrings: {
+      opus46: modelStrings.opus46,
+      opus45: modelStrings.opus45,
+      opus41: modelStrings.opus41,
+      opus40: modelStrings.opus40,
+      sonnet46: modelStrings.sonnet46,
+      sonnet45: modelStrings.sonnet45,
+      sonnet40: modelStrings.sonnet40,
+      sonnet37: modelStrings.sonnet37,
+      sonnet35: modelStrings.sonnet35,
+      haiku45: modelStrings.haiku45,
+      haiku35: modelStrings.haiku35,
+    },
+    modelAliases: {
+      available: [...(MODEL_ALIASES as readonly string[])],
+      resolved: {
+        opus: renderModelName(parseUserSpecifiedModel('opus')),
+        sonnet: renderModelName(parseUserSpecifiedModel('sonnet')),
+        haiku: renderModelName(parseUserSpecifiedModel('haiku')),
+      },
+    },
+    defaults: {
+      opus: renderModelName(getDefaultOpusModel()),
+      sonnet: renderModelName(getDefaultSonnetModel()),
+      haiku: renderModelName(getDefaultHaikuModel()),
+    },
+    availableModels: modelOptions.map(opt => ({
+      label: opt.label,
+      value: opt.value,
+      description: opt.description,
+    })),
   }
-  console.log(`  默认模型设置: ${chalk.yellow(defaultModelSetting ?? 'null')}`)
-  console.log(`  默认模型 (解析): ${chalk.yellow(renderModelName(defaultModel))}`)
+
+  // Zen 免费模型
+  if (result.zenFreeModels.enabled) {
+    const zenModels = getZenFreeModelPickerOptions()
+    result.zenFreeModels.modelsCount = zenModels.length
+    result.zenFreeModels.models = zenModels.map(opt => ({
+      label: opt.label,
+      value: opt.value,
+      description: opt.description,
+    }))
+  }
+
+  // OpenAI 兼容模式下的额外模型
+  if (result.openaiCompat.enabled) {
+    const compatOptions = getCompatProviderEnvModelOptions()
+    result.openaiCompatModels = compatOptions.map(opt => ({
+      label: opt.label,
+      value: opt.value ?? '',
+      description: opt.description,
+    }))
+  }
+
+  return result
+}
+
+/**
+ * 输出文本格式的模型信息
+ */
+function outputTextFormat(data: ListModelsResult): void {
+  console.log(chalk.bold('\n=== Claude Code 模型配置信息 ===\n'))
+
+  // 1. 当前配置的模型
+  console.log(chalk.bold(chalk.cyan('当前使用的模型')))
+  if (data.current.userSpecified) {
+    console.log(`  用户指定模型: ${chalk.green(data.current.userSpecified)}`)
+    console.log(`  解析后的模型: ${chalk.green(data.current.parsed)}`)
+  } else {
+    console.log(`  当前模型: ${chalk.green(data.current.parsed)} (使用默认值)`)
+  }
+  console.log(`  默认模型设置: ${chalk.yellow(data.current.defaultSetting ?? 'null')}`)
+  console.log(`  默认模型 (解析): ${chalk.yellow(data.current.default)}`)
 
   // 2. 环境变量配置 - 不脱敏
   console.log(chalk.bold(chalk.cyan('\n环境变量配置')))
-  console.log(`  ANTHROPIC_API_KEY: ${chalk.magenta(process.env.ANTHROPIC_API_KEY || '(未设置)')}`)
-  console.log(`  ANTHROPIC_AUTH_TOKEN: ${chalk.magenta(process.env.ANTHROPIC_AUTH_TOKEN || '(未设置)')}`)
-  console.log(`  ANTHROPIC_BASE_URL: ${chalk.magenta(process.env.ANTHROPIC_BASE_URL || '(未设置)')}`)
-  console.log(`  ANTHROPIC_MODEL: ${chalk.magenta(process.env.ANTHROPIC_MODEL || '(未设置)')}`)
-  console.log(`  ANTHROPIC_DEFAULT_OPUS_MODEL: ${chalk.magenta(process.env.ANTHROPIC_DEFAULT_OPUS_MODEL || '(未设置)')}`)
-  console.log(`  ANTHROPIC_DEFAULT_SONNET_MODEL: ${chalk.magenta(process.env.ANTHROPIC_DEFAULT_SONNET_MODEL || '(未设置)')}`)
-  console.log(`  ANTHROPIC_DEFAULT_HAIKU_MODEL: ${chalk.magenta(process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || '(未设置)')}`)
-  console.log(`  ANTHROPIC_CUSTOM_MODEL_OPTION: ${chalk.magenta(process.env.ANTHROPIC_CUSTOM_MODEL_OPTION || '(未设置)')}`)
-  console.log(`  ANTHROPIC_CUSTOM_MODEL_OPTION_NAME: ${chalk.magenta(process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_NAME || '(未设置)')}`)
-  console.log(`  ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION: ${chalk.magenta(process.env.ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION || '(未设置)')}`)
+  for (const [key, value] of Object.entries(data.environment)) {
+    console.log(`  ${key}: ${chalk.magenta(value)}`)
+  }
 
   // OpenAI 兼容模式相关
   console.log(chalk.bold(chalk.cyan('\nOpenAI 兼容模式配置')))
-  console.log(`  CLAUDE_CODE_USE_OPENAI_COMPAT_API: ${chalk.magenta(process.env.CLAUDE_CODE_USE_OPENAI_COMPAT_API || '(未设置)')}`)
-  console.log(`  当前模式: ${isOpenAICompatApiMode() ? chalk.green('已启用') : chalk.gray('未启用')}`)
+  console.log(`  CLAUDE_CODE_USE_OPENAI_COMPAT_API: ${chalk.magenta(data.environment.CLAUDE_CODE_USE_OPENAI_COMPAT_API)}`)
+  console.log(`  当前模式: ${data.openaiCompat.enabled ? chalk.green('已启用') : chalk.gray('未启用')}`)
 
-  if (isOpenAICompatApiMode()) {
-    console.log(`  CLAUDE_CODE_OPENAI_BASE_URL: ${chalk.magenta(process.env.CLAUDE_CODE_OPENAI_BASE_URL || '(未设置)')}`)
+  if (data.openaiCompat.enabled) {
+    console.log(`  CLAUDE_CODE_OPENAI_BASE_URL: ${chalk.magenta(data.environment.CLAUDE_CODE_OPENAI_BASE_URL)}`)
     console.log(`  （鉴权使用 ANTHROPIC_AUTH_TOKEN / ANTHROPIC_API_KEY，见 openaiCompat/config.ts）`)
   }
 
-  const installPrefix = process.env.CLAUDE_CODE_INSTALL_PREFIX?.trim()
-  if (installPrefix) {
-    console.log(`  CLAUDE_CODE_INSTALL_PREFIX: ${chalk.cyan(installPrefix)}（安装目录 .env 由 preload 注入；可能与仓库 --env-file 叠加）`)
+  if (data.environment.CLAUDE_CODE_INSTALL_PREFIX !== '(未设置)') {
+    console.log(`  CLAUDE_CODE_INSTALL_PREFIX: ${chalk.cyan(data.environment.CLAUDE_CODE_INSTALL_PREFIX)}（安装目录 .env 由 preload 注入；可能与仓库 --env-file 叠加）`)
   } else {
     console.log(`  CLAUDE_CODE_INSTALL_PREFIX: ${chalk.gray('(未设置 — 非编译安装前缀场景)')}`)
   }
 
   // Zen 免费模型配置
   console.log(chalk.bold(chalk.cyan('\nZen 免费模型 (OpenCode) 配置')))
-  console.log(`  CLAUDE_CODE_ZEN_FREE_MODELS: ${chalk.magenta(process.env.CLAUDE_CODE_ZEN_FREE_MODELS || '(未设置)')}`)
-  console.log(`  Zen API Base URL: ${chalk.magenta(ZEN_OPENAI_BASE_URL)}`)
-  console.log(`  Zen 功能启用状态: ${isZenFreeModelsFeatureEnabled() ? chalk.green('已启用') : chalk.gray('未启用')}`)
+  console.log(`  CLAUDE_CODE_ZEN_FREE_MODELS: ${chalk.magenta(data.environment.CLAUDE_CODE_ZEN_FREE_MODELS)}`)
+  console.log(`  Zen API Base URL: ${chalk.magenta(data.zenFreeModels.baseUrl)}`)
+  console.log(`  Zen 功能启用状态: ${data.zenFreeModels.enabled ? chalk.green('已启用') : chalk.gray('未启用')}`)
 
-  if (isZenFreeModelsFeatureEnabled()) {
-    const zenModels = getZenFreeModelPickerOptions()
-    console.log(`  已获取 Zen 模型数量: ${zenModels.length}`)
+  if (data.zenFreeModels.enabled) {
+    console.log(`  已获取 Zen 模型数量: ${data.zenFreeModels.modelsCount}`)
   }
 
   // 3. API Provider 信息
   console.log(chalk.bold(chalk.cyan('\nAPI Provider')))
-  const provider = getAPIProvider()
-  console.log(`  当前 Provider: ${chalk.green(provider)}`)
+  console.log(`  当前 Provider: ${chalk.green(data.provider)}`)
 
   // 4. 用户认证状态
   console.log(chalk.bold(chalk.cyan('\n用户认证状态')))
-  console.log(`  Claude.ai 订阅用户: ${isClaudeAISubscriber() ? chalk.green('是') : chalk.gray('否')}`)
-  if (isClaudeAISubscriber()) {
-    console.log(`  订阅类型: ${chalk.green(getSubscriptionType() ?? '未知')}`)
-    console.log(`  Max 用户: ${isMaxSubscriber() ? chalk.green('是') : chalk.gray('否')}`)
-    console.log(`  Team Premium 用户: ${isTeamPremiumSubscriber() ? chalk.green('是') : chalk.gray('否')}`)
+  console.log(`  Claude.ai 订阅用户: ${data.auth.isClaudeAISubscriber ? chalk.green('是') : chalk.gray('否')}`)
+  if (data.auth.isClaudeAISubscriber) {
+    console.log(`  订阅类型: ${chalk.green(data.auth.subscriptionType ?? '未知')}`)
+    console.log(`  Max 用户: ${data.auth.isMaxSubscriber ? chalk.green('是') : chalk.gray('否')}`)
+    console.log(`  Team Premium 用户: ${data.auth.isTeamPremiumSubscriber ? chalk.green('是') : chalk.gray('否')}`)
   }
 
   // 5. 设置文件中的模型配置
   console.log(chalk.bold(chalk.cyan('\n设置文件配置')))
-  const settings = getSettings_DEPRECATED() || {}
-  console.log(`  model: ${chalk.magenta(settings.model ?? '(未设置)')}`)
-  console.log(`  availableModels: ${settings.availableModels ? chalk.magenta(JSON.stringify(settings.availableModels)) : chalk.gray('(未设置 - 无限制)')}`)
+  console.log(`  model: ${chalk.magenta(data.settings.model ?? '(未设置)')}`)
+  console.log(`  availableModels: ${data.settings.availableModels ? chalk.magenta(JSON.stringify(data.settings.availableModels)) : chalk.gray('(未设置 - 无限制)')}`)
 
   // 6. 模型字符串配置
   console.log(chalk.bold(chalk.cyan('\n模型 ID 字符串')))
-  const modelStrings = getModelStrings()
-  console.log(`  Opus 4.6: ${chalk.yellow(modelStrings.opus46)}`)
-  console.log(`  Opus 4.5: ${chalk.yellow(modelStrings.opus45)}`)
-  console.log(`  Opus 4.1: ${chalk.yellow(modelStrings.opus41)}`)
-  console.log(`  Opus 4: ${chalk.yellow(modelStrings.opus40)}`)
-  console.log(`  Sonnet 4.6: ${chalk.yellow(modelStrings.sonnet46)}`)
-  console.log(`  Sonnet 4.5: ${chalk.yellow(modelStrings.sonnet45)}`)
-  console.log(`  Sonnet 4: ${chalk.yellow(modelStrings.sonnet40)}`)
-  console.log(`  Sonnet 3.7: ${chalk.yellow(modelStrings.sonnet37)}`)
-  console.log(`  Sonnet 3.5: ${chalk.yellow(modelStrings.sonnet35)}`)
-  console.log(`  Haiku 4.5: ${chalk.yellow(modelStrings.haiku45)}`)
-  console.log(`  Haiku 3.5: ${chalk.yellow(modelStrings.haiku35)}`)
+  for (const [key, value] of Object.entries(data.modelStrings)) {
+    console.log(`  ${key}: ${chalk.yellow(value)}`)
+  }
 
   // 7. 模型别名
   console.log(chalk.bold(chalk.cyan('\n模型别名')))
-  console.log(`  可用别名: ${chalk.green((MODEL_ALIASES as readonly string[]).join(', '))}`)
-  console.log(`  'opus' 解析为: ${chalk.yellow(renderModelName(parseUserSpecifiedModel('opus')))}`)
-  console.log(`  'sonnet' 解析为: ${chalk.yellow(renderModelName(parseUserSpecifiedModel('sonnet')))}`)
-  console.log(`  'haiku' 解析为: ${chalk.yellow(renderModelName(parseUserSpecifiedModel('haiku')))}`)
+  console.log(`  可用别名: ${chalk.green(data.modelAliases.available.join(', '))}`)
+  console.log(`  'opus' 解析为: ${chalk.yellow(data.modelAliases.resolved.opus)}`)
+  console.log(`  'sonnet' 解析为: ${chalk.yellow(data.modelAliases.resolved.sonnet)}`)
+  console.log(`  'haiku' 解析为: ${chalk.yellow(data.modelAliases.resolved.haiku)}`)
 
   // 8. 默认模型解析
   console.log(chalk.bold(chalk.cyan('\n默认模型解析')))
-  console.log(`  默认 Opus: ${chalk.yellow(renderModelName(getDefaultOpusModel()))}`)
-  console.log(`  默认 Sonnet: ${chalk.yellow(renderModelName(getDefaultSonnetModel()))}`)
-  console.log(`  默认 Haiku: ${chalk.yellow(renderModelName(getDefaultHaikuModel()))}`)
+  console.log(`  默认 Opus: ${chalk.yellow(data.defaults.opus)}`)
+  console.log(`  默认 Sonnet: ${chalk.yellow(data.defaults.sonnet)}`)
+  console.log(`  默认 Haiku: ${chalk.yellow(data.defaults.haiku)}`)
 
   // 9. 可用模型列表
   console.log(chalk.bold(chalk.cyan('\n可用模型列表 (Model Picker)')))
   const modelOptions = getModelOptions(false)
-  for (const opt of modelOptions) {
+  for (const opt of data.availableModels) {
     const valueStr = opt.value === null ? '(default)' : opt.value
     console.log(`  ${chalk.green(opt.label)}: ${chalk.gray(valueStr)}`)
     if (opt.description) {
@@ -158,21 +291,21 @@ export async function listModels(): Promise<void> {
   }
 
   // 10. OpenAI 兼容模型选项
-  if (isOpenAICompatApiMode()) {
+  if (data.openaiCompat.enabled) {
     console.log(chalk.bold(chalk.cyan('\nOpenAI 兼容 Provider 环境模型')))
-    const compatOptions = getCompatProviderEnvModelOptions()
-    for (const opt of compatOptions) {
-      console.log(`  ${chalk.green(opt.label)}: ${chalk.gray(opt.value)}`)
-      if (opt.description) {
-        console.log(`    描述: ${opt.description}`)
+    if (data.openaiCompatModels) {
+      for (const opt of data.openaiCompatModels) {
+        console.log(`  ${chalk.green(opt.label)}: ${chalk.gray(opt.value)}`)
+        if (opt.description) {
+          console.log(`    描述: ${opt.description}`)
+        }
       }
     }
 
     console.log(chalk.bold(chalk.cyan('\nZen 免费模型')))
-    if (isZenFreeModelsFeatureEnabled()) {
-      const zenModels = getZenFreeModelPickerOptions()
-      if (zenModels.length > 0) {
-        for (const opt of zenModels) {
+    if (data.zenFreeModels.enabled) {
+      if (data.zenFreeModels.models && data.zenFreeModels.models.length > 0) {
+        for (const opt of data.zenFreeModels.models) {
           console.log(`  ${chalk.green(opt.label)}: ${chalk.gray(opt.value)}`)
           if (opt.description) {
             console.log(`    描述: ${opt.description}`)
@@ -187,4 +320,36 @@ export async function listModels(): Promise<void> {
   }
 
   console.log(chalk.bold('\n=== 信息结束 ===\n'))
+}
+
+/**
+ * 输出 JSON 格式的模型信息
+ */
+function outputJsonFormat(data: ListModelsResult): void {
+  console.log(JSON.stringify(data, null, 2))
+}
+
+/**
+ * 输出 --list-models 信息
+ */
+export async function listModels(options?: ListModelsOptions): Promise<void> {
+  enableConfigs()
+
+  try {
+    const data = await collectModelData()
+
+    if (options?.json) {
+      outputJsonFormat(data)
+    } else {
+      outputTextFormat(data)
+    }
+  } catch (error) {
+    if (options?.json) {
+      // JSON 模式下，错误输出到 stderr，确保 stdout 是有效 JSON
+      console.error('Error:', error instanceof Error ? error.message : String(error))
+      process.exit(1)
+    } else {
+      console.error(chalk.red(`\n错误: ${error instanceof Error ? error.message : String(error)}`))
+    }
+  }
 }

@@ -996,7 +996,7 @@ async function run(): Promise<CommanderCommand> {
   }).hideHelp()).option('--from-pr [value]', '按 PR 编号/URL 恢复关联会话，或打开交互选择（可选搜索词）', value => value || true).option('--no-session-persistence', '禁用会话持久化：不写入磁盘、无法恢复（仅 --print）').addOption(new Option('--resume-session-at <message id>', '恢复时仅保留到指定 assistant 消息 id（含该条）（print 模式与 --resume 连用）').argParser(String).hideHelp()).addOption(new Option('--rewind-files <user-message-id>', '将文件恢复到指定用户消息时的状态并退出（需要 --resume）').hideHelp())
   // @[MODEL LAUNCH]: Update the example model ID in the --model help text.
   .option('--model <model>', `当前会话使用的模型。可写别名（如 'sonnet'、'opus'）或完整模型名（如 'claude-sonnet-4-6'）。`)
-  .option('--list-models', '列出所有配置的模型信息，包括环境变量、API 配置和可用模型列表', () => true)
+  .option('--list-models', '列出所有配置的模型信息，包括环境变量、API 配置和可用模型列表。支持 --json 参数输出 JSON 格式。', () => true)
   .option('--env-list', '列出 CLAUDE_CODE_INSTALL_PREFIX/.env（脱敏），需编译安装前缀', () => true)
   .option('--env-set <key=value>', '写入安装前缀 .env 中的单个变量', () => true)
   .option('--env-unset <key>', '从安装前缀 .env 删除键', () => true)

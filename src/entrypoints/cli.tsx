@@ -47,9 +47,11 @@ async function main(): Promise<void> {
   }
 
   // Fast-path for --list-models: show model configuration and available models
-  if (args.length === 1 && args[0] === '--list-models') {
+  // 支持 --list-models --json 格式
+  if (args.length >= 1 && args[0] === '--list-models') {
     const { listModels } = await import('../cli/listModels.js');
-    await listModels();
+    const jsonMode = args.includes('--json');
+    await listModels({ json: jsonMode });
     return;
   }
 
