@@ -1,6 +1,7 @@
 import { basename } from 'path'
 import React from 'react'
 import { logError } from 'src/utils/log.js'
+import { toError } from '../utils/errors.js'
 import { useDebounceCallback } from 'usehooks-ts'
 import type { InputEvent, Key } from '../ink.js'
 import {
@@ -135,9 +136,15 @@ export function usePasteHandler({
                   pastedText,
                 )
 
-              // Process all image paths
+              // Process all image paths (each path catches errors so Promise.all
+              // always settles — otherwise a Sharp/resize throw leaves isPasting stuck)
               void Promise.all(
-                imagePaths.map(imagePath => tryReadImageFromPath(imagePath)),
+                imagePaths.map(imagePath =>
+                  tryReadImageFromPath(imagePath).catch(error => {
+                    logError(toError(error))
+                    return null
+                  }),
+                ),
               ).then(results => {
                 const validImages = results.filter(
                   (r): r is NonNullable<typeof r> => r !== null,
