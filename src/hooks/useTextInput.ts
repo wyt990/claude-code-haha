@@ -254,8 +254,8 @@ export function useTextInput({
       markBackslashReturnUsed()
       return cursor.backspace().insert('\n')
     }
-    // Meta+Enter or Shift+Enter inserts a newline
-    if (key.meta || key.shift) {
+    // Meta+Enter, Shift+Enter, or Ctrl+Enter inserts a newline
+    if (key.meta || key.shift || key.ctrl) {
       return cursor.insert('\n')
     }
     // Apple Terminal doesn't support custom Shift+Enter keybindings,
@@ -339,6 +339,11 @@ export function useTextInput({
           : () => cursor.deleteTokenBefore() ?? cursor.backspace()
       case key.delete:
         return key.meta ? killToLineEnd : () => cursor.del()
+      case key.return:
+        // Must come before key.ctrl/key.meta so Ctrl+Enter/Shift+Enter inserts newline
+        // (key.ctrl/key.meta would match first and handleCtrl/handleMeta would not have
+        // a binding for 'return', causing it to fall through to default text insertion)
+        return () => handleEnter(key)
       case key.ctrl:
         return handleCtrl
       case key.home:
@@ -363,9 +368,6 @@ export function useTextInput({
         // ScrollKeybindingHandler handles them; no-op here to avoid inserting
         // the raw SGR sequence as text.
         return NOOP_HANDLER
-      case key.return:
-        // Must come before key.meta so Option+Return inserts newline
-        return () => handleEnter(key)
       case key.meta:
         return handleMeta
       case key.tab:
