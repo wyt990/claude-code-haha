@@ -982,7 +982,7 @@ function PromptInput({
     setSuggestionsStateRaw(prev => typeof updater === 'function' ? updater(prev) : updater);
   }, []);
   const onSubmit = useCallback(async (inputParam: string, isSubmittingSlashCommand = false) => {
-    inputParam = inputParam.trimEnd();
+    inputParam = inputParam.trim();
 
     // Don't submit if a footer indicator is being opened. Read fresh from
     // store — footer:openSelected calls selectFooterItem(null) then onSubmit

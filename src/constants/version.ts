@@ -7,4 +7,4 @@
  *
  * 运行时仍可用环境变量 `CLAUDE_CODE_LOCAL_VERSION` 覆盖（由 preload 读取，见 preload.ts）。
  */
-export const CLAUDE_CODE_VERSION = '100.0.16-local'
+export const CLAUDE_CODE_VERSION = '100.0.17-local'

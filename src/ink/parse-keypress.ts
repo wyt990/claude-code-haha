@@ -701,8 +701,16 @@ function parseKeypress(s: string = ''): ParsedKey {
   if (s === '\r') {
     key.raw = undefined
     key.name = 'return'
+  } else if (s === '\x1b\r') {
+    // ESC + Enter: used by VS Code terminal-setup for Shift+Enter
+    // This allows Shift+Enter to work in terminals without Kitty/modifyOtherKeys support
+    key.name = 'return'
+    key.meta = true
   } else if (s === '\n') {
-    key.name = 'enter'
+    // Ctrl+J sends \n (Line Feed, ASCII 10)
+    // This is a reliable way to insert newline in any terminal
+    key.name = 'j'
+    key.ctrl = true
   } else if (s === '\t') {
     key.name = 'tab'
   } else if (s === '\b' || s === '\x1b\b') {

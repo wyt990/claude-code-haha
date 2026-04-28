@@ -238,8 +238,15 @@ export default class App extends PureComponent<Props, State> {
         // push (CSI >1u) and xterm modifyOtherKeys level 2 (CSI >4;2m) —
         // terminals honor whichever they implement (tmux only accepts the
         // latter).
+        // NOTE: We only enable Kitty protocol on known terminals because some
+        // terminals (xterm.js, SSH sessions) emit unexpected codepoints when
+        // enabled. But modifyOtherKeys is safer - it's an xterm standard and
+        // most modern terminals either support it or ignore it silently.
         if (supportsExtendedKeys()) {
           this.props.stdout.write(ENABLE_KITTY_KEYBOARD);
+          this.props.stdout.write(ENABLE_MODIFY_OTHER_KEYS);
+        } else if (!isXtermJs()) {
+          // For non-xterm.js terminals, try modifyOtherKeys only (safer)
           this.props.stdout.write(ENABLE_MODIFY_OTHER_KEYS);
         }
         // Probe terminal identity. XTVERSION survives SSH (query/reply goes

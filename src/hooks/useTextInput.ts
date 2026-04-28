@@ -229,6 +229,7 @@ export function useTextInput({
     ['e', () => cursor.endOfLine()],
     ['f', () => cursor.right()],
     ['h', () => cursor.deleteTokenBefore() ?? cursor.backspace()],
+    ['j', () => cursor.insert('\n')], // Ctrl+J inserts newline (works in any terminal)
     ['k', killToLineEnd],
     ['n', () => downOrHistoryDown()],
     ['p', () => upOrHistoryUp()],
