@@ -71,6 +71,8 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       'meta+o': 'chat:fastMode',
       'meta+t': 'chat:thinkingToggle',
       enter: 'chat:submit',
+      'shift+enter': 'chat:newline',
+      'ctrl+enter': 'chat:newline',
       up: 'history:previous',
       down: 'history:next',
       // Editing shortcuts (defined here, migration in progress)
