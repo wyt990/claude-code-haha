@@ -348,6 +348,27 @@ irm https://raw.githubusercontent.com/wyt990/claude-code-haha/main/install/insta
 
 ---
 
+## 权限与减少提问（授权参数）
+
+如果你希望在编码时减少权限提问次数、提高连贯性，优先关注以下参数：
+
+- `--permission-mode <mode>`：可选 `default` / `acceptEdits` / `plan` / `dontAsk` / `bypassPermissions`
+- `--allowed-tools <tools...>`：预先允许工具（推荐与 `acceptEdits` 搭配）
+- `--disallowed-tools <tools...>`：预先拒绝工具
+- `--tools <tools...>`：限制内置工具集合
+- `--add-dir <directories...>`：扩展可访问目录，减少目录边界导致的确认
+- `--dangerously-skip-permissions`：跳过全部权限检查（高风险）
+- `--allow-dangerously-skip-permissions`：允许会话可切换到“跳过权限”能力，但不代表当前已启用
+
+快速建议：
+
+- **日常开发推荐**：`acceptEdits + 精确 allowed-tools`
+- **“尽量不问”**：`dontAsk`（注意：会把原本需确认的操作直接拒绝）
+- **“无限制/全放行”诉求**：对应 `bypassPermissions` / `dangerously-skip-permissions`，但受安全与策略限制（如 root/sudo、沙箱与联网状态、组织策略）
+
+用例：claudecode --permission-mode acceptEdits --allowed-tools "Read Edit Bash(git:*)"
+---
+
 ## 降级模式
 
 如果完整 TUI 出现问题，可以使用简化版 readline 交互模式：
