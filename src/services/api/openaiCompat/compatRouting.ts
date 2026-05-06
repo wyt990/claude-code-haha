@@ -154,7 +154,8 @@ export function getCompatProviderEnvModelOptions(): Array<{
       return []
     }
     return models.map(m => ({
-      value: `${p.id}/${m}`,
+      // 直接沿用配置文件中的模型值，避免重复拼接前缀
+      value: m,
       label: `${m}（${p.id}）`,
       description: `OpenAI 兼容 · ${p.baseUrl}`,
     }))
@@ -185,5 +186,6 @@ export function isCompatEnvProviderRoutedModel(model: string): boolean {
   if (!prov.models?.length) {
     return true
   }
-  return prov.models.includes(rest)
+  // 兼容老配置（只写模型名）与新配置（已包含 provider 前缀）两种存量写法
+  return prov.models.includes(rest) || prov.models.includes(trimmed)
 }

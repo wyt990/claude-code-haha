@@ -104,7 +104,8 @@ async function collectModelData(): Promise<ListModelsResult> {
     baseUrl: p.baseUrl,
     models: (p.models ?? []).map(m => ({
       originalName: m,
-      routedValue: `${p.id}/${m}`,
+      // 直接使用配置文件中的模型值，不再二次拼接 provider id
+      routedValue: m,
     })),
   }))
 
