@@ -6,6 +6,10 @@ import type {
 } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import { randomUUID } from 'crypto'
 
+/** Placeholder signature so thinking blocks from OpenAI-compat providers round-trip without Anthropic crypto signatures. */
+export const OPENAI_COMPAT_REASONING_THINKING_SIGNATURE =
+  'openai-compat-reasoning'
+
 function mapOpenAIFinishToStopReason(fr: string | null | undefined): BetaStopReason {
   switch (fr) {
     case 'stop':
@@ -56,6 +60,15 @@ export function openAICompletionJsonToBetaMessage(
   const choice = choices?.[0]
   const msg = (choice?.message ?? {}) as Record<string, unknown>
   const contentBlocks: BetaContentBlock[] = []
+
+  // DeepSeek thinking mode (OpenAI shape): reasoning_content must be echoed on later turns when tool_calls exist.
+  if (typeof msg.reasoning_content === 'string') {
+    contentBlocks.push({
+      type: 'thinking',
+      thinking: msg.reasoning_content,
+      signature: OPENAI_COMPAT_REASONING_THINKING_SIGNATURE,
+    })
+  }
 
   if (typeof msg.content === 'string' && msg.content.length > 0) {
     contentBlocks.push({

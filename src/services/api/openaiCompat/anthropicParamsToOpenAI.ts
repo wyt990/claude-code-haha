@@ -27,8 +27,7 @@ export function assertOpenAICompatMessagesSupported(
 function skipAssistantBlock(block: BetaContentBlockParam): boolean {
   const t = block.type
   return (
-    t === 'thinking' ||
-    t === 'redacted_thinking' ||
+    // thinking / redacted_thinking are handled in assistantBlocksToOpenAI → reasoning_content
     t === 'server_tool_use' ||
     t === 'mcp_tool_use'
   )
@@ -138,7 +137,18 @@ function assistantBlocksToOpenAI(
 ): OpenAIChatMessage {
   let text = ''
   const toolCalls: unknown[] = []
+  /** DeepSeek thinking mode: preserve CoT slices for round-trip (tool-call turns require reasoning_content). */
+  const reasoningSlices: string[] = []
   for (const block of blocks) {
+    if (block.type === 'thinking') {
+      reasoningSlices.push(
+        typeof block.thinking === 'string' ? block.thinking : '',
+      )
+      continue
+    }
+    if (block.type === 'redacted_thinking') {
+      continue
+    }
     if (skipAssistantBlock(block)) {
       continue
     }
@@ -160,10 +170,15 @@ function assistantBlocksToOpenAI(
     }
   }
   const hasTools = toolCalls.length > 0
+  const reasoning_content =
+    reasoningSlices.length > 0 ? reasoningSlices.join('\n') : undefined
   return {
     role: 'assistant',
     content: text.length > 0 ? text : hasTools ? null : '',
     ...(hasTools ? { tool_calls: toolCalls } : {}),
+    ...(reasoning_content !== undefined
+      ? { reasoning_content }
+      : {}),
   }
 }
 

@@ -14,6 +14,7 @@ import { buildOpenAIChatCompletionBody } from './anthropicParamsToOpenAI.js'
 import { mergeAbortSignals } from './config.js'
 import { resolveOpenAICompatRouting } from './compatRouting.js'
 import { mergeOpenAICompatExtraBody } from './extraBody.js'
+import { OPENAI_COMPAT_REASONING_THINKING_SIGNATURE } from './openaiResponseToBetaMessage.js'
 
 function emptyBetaUsage(): BetaUsage {
   return {
@@ -96,6 +97,8 @@ async function* iterateOpenAIToAnthropicEvents(
   let messageStarted = false
   const msgId = `msg_${randomUUID()}`
   let nextBlockIndex = 0
+  /** DeepSeek-style streamed CoT → Anthropic thinking block (round-trips via reasoning_content). */
+  let reasoningBlockIndex: number | null = null
   let textBlockIndex: number | null = null
   const toolsByOpenAIIndex = new Map<number, ToolAcc>()
 
@@ -107,6 +110,10 @@ async function* iterateOpenAIToAnthropicEvents(
   }
 
   const finalizeBlocks = function* (): Generator<BetaRawMessageStreamEvent> {
+    if (reasoningBlockIndex !== null) {
+      yield { type: 'content_block_stop', index: reasoningBlockIndex }
+      reasoningBlockIndex = null
+    }
     if (textBlockIndex !== null) {
       yield { type: 'content_block_stop', index: textBlockIndex }
       textBlockIndex = null
@@ -171,9 +178,35 @@ async function* iterateOpenAIToAnthropicEvents(
           yield* ensureMessageStart()
         }
 
+        const reasoningChunk = delta?.reasoning_content
+        if (typeof reasoningChunk === 'string' && reasoningChunk.length > 0) {
+          yield* ensureMessageStart()
+          if (reasoningBlockIndex === null) {
+            reasoningBlockIndex = nextBlockIndex++
+            yield {
+              type: 'content_block_start',
+              index: reasoningBlockIndex,
+              content_block: {
+                type: 'thinking',
+                thinking: '',
+                signature: OPENAI_COMPAT_REASONING_THINKING_SIGNATURE,
+              },
+            }
+          }
+          yield {
+            type: 'content_block_delta',
+            index: reasoningBlockIndex,
+            delta: { type: 'thinking_delta', thinking: reasoningChunk },
+          }
+        }
+
         const content = delta?.content
         if (typeof content === 'string' && content.length > 0) {
           yield* ensureMessageStart()
+          if (reasoningBlockIndex !== null) {
+            yield { type: 'content_block_stop', index: reasoningBlockIndex }
+            reasoningBlockIndex = null
+          }
           if (textBlockIndex === null) {
             textBlockIndex = nextBlockIndex++
             yield {
@@ -217,6 +250,14 @@ async function* iterateOpenAIToAnthropicEvents(
             const fn = tc.function as Record<string, unknown> | undefined
             if (!acc.started && fn && typeof fn.name === 'string' && fn.name) {
               yield* ensureMessageStart()
+              if (reasoningBlockIndex !== null) {
+                yield { type: 'content_block_stop', index: reasoningBlockIndex }
+                reasoningBlockIndex = null
+              }
+              if (textBlockIndex !== null) {
+                yield { type: 'content_block_stop', index: textBlockIndex }
+                textBlockIndex = null
+              }
               acc.name = fn.name
               yield {
                 type: 'content_block_start',
